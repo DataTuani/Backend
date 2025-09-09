@@ -5,7 +5,7 @@ const path = require("path");
 // const expressOasGenerator = require("express-oas-generator");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 // --- Agrega esto aquí ---
 const swaggerJsdoc = require('swagger-jsdoc');

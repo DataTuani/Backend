@@ -25,20 +25,23 @@ const register = async (req, res) => {
   try {
     const existeCedula = await prisma.usuario.findUnique({ where: { cedula } });
     if (existeCedula) {
-      return res.status(400).json({ error: "La cédula ya está en uso" });
+      return res
+        .status(400)
+        .json({ success: false, error: "La cédula ya está en uso" });
     }
 
     const existeCorreo = await prisma.usuario.findUnique({ where: { correo } });
     if (existeCorreo) {
-      return res.status(400).json({ error: "El correo ya está en uso" });
+      return res
+        .status(400)
+        .json({ success: false, error: "El correo ya está en uso" });
     }
 
-    const rol = await prisma.rol.findUnique({
-      where: { id: rol_id },
-    });
-
+    const rol = await prisma.rol.findUnique({ where: { id: rol_id } });
     if (!rol) {
-      return res.status(400).json({ error: "Rol no encontrado" });
+      return res
+        .status(400)
+        .json({ success: false, error: "Rol no encontrado" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -75,16 +78,19 @@ const register = async (req, res) => {
         Paciente: { include: { alergias: true, enfermedades: true } },
       },
     });
+
     const { contraseña, ...usuarioSinContraseña } = nuevoUsuario;
 
     return res.status(201).json({
+      success: true,
       message: "Usuario registrado exitosamente",
       usuario: usuarioSinContraseña,
     });
   } catch (error) {
     console.log(error);
-
-    return res.status(500).json({ error: "Error interno del servidor" });
+    return res
+      .status(500)
+      .json({ success: false, error: "Error interno del servidor" });
   }
 };
 
@@ -95,13 +101,13 @@ const login = async (req, res) => {
     const usuario = await prisma.usuario.findUnique({
       where: { correo },
       select: {
-        id: true, 
+        id: true,
         primer_nombre: true,
         segundo_nombre: true,
         primer_apellido: true,
         segundo_apellido: true,
         correo: true,
-        contraseña: true, 
+        contraseña: true,
         Paciente: {
           include: {
             alergias: true,
@@ -114,12 +120,12 @@ const login = async (req, res) => {
     if (!usuario) {
       return res
         .status(400)
-        .json({ error: "No existe un usuario con ese correo" });
+        .json({success: false ,error: "No existe un usuario con ese correo" });
     }
 
     const passwordMatch = await bcrypt.compare(contraseña, usuario.contraseña);
     if (!passwordMatch) {
-      return res.status(400).json({ error: "Correo o contraseña incorrectos" });
+      return res.status(400).json({ success: false, error: "Correo o contraseña incorrectos" });
     }
 
     const token = jwt.sign(
@@ -131,13 +137,14 @@ const login = async (req, res) => {
     const { contraseña: _, ...usuarioSinContraseña } = usuario;
 
     return res.status(201).json({
+       success: true,
       message: "Login exitoso",
       usuario: usuarioSinContraseña,
       token,
     });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ error: "Error interno del servidor" });
+    return res.status(500).json({ success: false, error: "Error interno del servidor" });
   }
 };
 

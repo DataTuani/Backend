@@ -108,6 +108,35 @@ const { validarJWT } = require("../middlewares/validarjwt");
 
 /**
  * @swagger
+ * /api/citas/{cita_id}:
+ *   post:
+ *     summary: Obtener Cita por Id
+ *     tags:
+ *       - Citas
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: cita_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la cita a obtener
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       401:
+ *         description: Token inválido o expirado
+ */
+
+
+
+/**
+ * @swagger
  * /api/citas/hospital:
  *   get:
  *     summary: Obtener citas por hospital
@@ -210,6 +239,7 @@ router.post(
     body("hospital_id").isInt().withMessage("Medico invalido"),
     body("fecha_hora").isISO8601().withMessage("Fecha/hora inválida"),
     body("motivo_consulta").isString().withMessage("Motivo de consulta inválida"),
+    body("tipoCita").notEmpty().isInt().withMessage("Tipo inválido"),
   ],
   (req, res, next) => {
     const errors = validationResult(req);
@@ -282,6 +312,39 @@ router.get(
   },
   citasController.obtenerCitasPorDoctor
 );
+
+// CITAS POR ID
+router.get(
+  "/:cita_id",
+  validarJWT,
+  [
+    param("cita_id").isInt().withMessage("Id inválido").notEmpty().withMessage("Id es requerido"),
+  ],
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    next();
+  },
+  citasController.obtenerCitaPorId
+);
+
+
+// CONSULTA POR ID CITA
+router.get(
+  "/consulta/:cita_id",
+  validarJWT,
+  [
+    param("cita_id").isInt().withMessage("Id inválido").notEmpty().withMessage("Id es requerido"),
+  ],
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    next();
+  },
+  citasController.obtenerConsultaPorId
+);
+
+
 
 // CANCELAR CITA
 router.put(

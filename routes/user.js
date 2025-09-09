@@ -8,7 +8,6 @@ const validate = require("../middlewares/validate");
 const { validarJWT } = require("../middlewares/validarjwt");
 const upload = require("../middlewares/upload");
 
-
 /**
  * @swagger
  * /api/user/:
@@ -114,25 +113,39 @@ router.put(
       .isString()
       .withMessage("Segundo apellido inválido"),
     body("fecha_nacimiento")
-    .optional()  
-    .isDate()
+      .optional()
+      .isDate()
       .withMessage("La fecha de nacimiento no es válida"),
     body("cedula")
       .optional()
       .isString()
       .withMessage("La cédula debe ser texto"),
     body("telefono")
-    .optional()
+      .optional()
       .isLength({ min: 8, max: 8 })
       .withMessage("El teléfono debe tener 8 dígitos"),
     body("genero")
-    .optional()
+      .optional()
       .isIn(["M", "F"])
       .withMessage("El género debe ser Masculino o Femenino"),
     body("direccion")
       .optional()
       .isString()
       .withMessage("La dirección es obligatoria"),
+    body("enfermedades_cronicas")
+      .optional()
+      .isArray()
+      .withMessage(
+        "Las enfermedades crónicas deben ser un array de cadenas de texto"
+      )
+      .custom((arr) => arr.every((item) => typeof item === "string"))
+      .withMessage("Cada enfermedad debe ser texto"),
+    body("alergias")
+      .optional()
+      .isArray()
+      .withMessage("Las alergias deben ser un array de cadenas de texto")
+      .custom((arr) => arr.every((item) => typeof item === "string"))
+      .withMessage("Cada alergia debe ser texto"),
   ],
   (req, res, next) => {
     const errors = validationResult(req);
@@ -141,7 +154,7 @@ router.put(
     }
     next();
   },
-  upload.single("Profile-image"), 
+  upload.single("Profile-image"),
   userController.actualizarUsuario
 );
 

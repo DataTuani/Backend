@@ -5,7 +5,8 @@ const e = require("express");
 const prisma = new PrismaClient();
 
 const agendarCita = async (req, res) => {
-  const { paciente_id, hospital_id, fecha_hora, motivo_consulta } = req.body;
+  const { paciente_id, hospital_id, fecha_hora, motivo_consulta, tipoCita } =
+    req.body;
 
   try {
     const paciente = await prisma.paciente.findUnique({
@@ -123,9 +124,12 @@ const agendarCita = async (req, res) => {
         medico: { connect: { id: medicoAsignado.id } },
         hospital: { connect: { id: hospital_id } },
         estado: { connect: { id: 1 } },
+
         expediente: { connect: { id: expediente.id } },
         fecha_hora: fecha,
         motivo_consulta,
+
+        tipo: { connect: { id: tipoCita } },
       },
       include: {
         paciente: {
@@ -160,6 +164,7 @@ const agendarCita = async (req, res) => {
         hospital: true,
         estado: true,
         expediente: true,
+        tipo: true,
       },
     });
 
@@ -181,13 +186,38 @@ const obtenerCitasPorHospital = async (req, res) => {
 
   try {
     const citas = await prisma.cita.findMany({
-      where: { hospital_id },
-      include: {
-        paciente: { include: { usuario: true } },
-        medico: { include: { usuario: true } },
-        hospital: true,
-        estado: true,
-        expediente: true,
+      where: { hospital_id: parseInt(hospital_id) },
+      select: {
+        motivo_consulta: true,
+        fecha_hora: true,
+        paciente: {
+          select: {
+            usuario: {
+              select: {
+                primer_nombre: true,
+                segundo_nombre: true,
+                primer_apellido: true,
+                segundo_apellido: true,
+                cedula: true,
+              },
+            },
+          },
+        },
+        medico: {
+          select: {
+            usuario: {
+              select: {
+                primer_nombre: true,
+                segundo_nombre: true,
+                primer_apellido: true,
+                segundo_apellido: true,
+                cedula: true,
+              },
+            },
+          },
+        },
+        estado: { select: { nombre: true } },
+        expediente: { select: { folio: true } },
       },
     });
 
@@ -269,21 +299,46 @@ const obtenerCitasPorDoctor = async (req, res) => {
 };
 
 const obtenerCitaPorId = async (req, res) => {
-  const cita_id = Number(req.query.id);
+  const { cita_id } = req.params;
 
   if (isNaN(cita_id)) {
     return res.status(400).json({ error: "Cita inválida" });
   }
 
   try {
-    const cita = await prisma.cita.findUnique({
-      where: { id: cita_id },
-      include: {
-        paciente: { include: { usuario: true } },
-        medico: { include: { usuario: true } },
-        hospital: true,
-        estado: true,
-        expediente: true,
+    const cita = await prisma.cita.findMany({
+      where: { id: parseInt(cita_id) },
+      select: {
+        motivo_consulta: true,
+        fecha_hora: true,
+        paciente: {
+          select: {
+            usuario: {
+              select: {
+                primer_nombre: true,
+                segundo_nombre: true,
+                primer_apellido: true,
+                segundo_apellido: true,
+                cedula: true,
+              },
+            },
+          },
+        },
+        medico: {
+          select: {
+            usuario: {
+              select: {
+                primer_nombre: true,
+                segundo_nombre: true,
+                primer_apellido: true,
+                segundo_apellido: true,
+                cedula: true,
+              },
+            },
+          },
+        },
+        estado: { select: { nombre: true } },
+        expediente: { select: { folio: true } },
       },
     });
 
@@ -292,6 +347,90 @@ const obtenerCitaPorId = async (req, res) => {
     }
 
     return res.status(200).json({ cita });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Error interno del servidor" });
+  }
+};
+
+const obtenerConsultaPorId = async (req, res) => {
+  const { cita_id } = req.params;
+
+  if (isNaN(cita_id)) {
+    return res.status(400).json({ error: "Cita inválida" });
+  }
+
+  try {
+    const consulta = await prisma.consulta.findUnique({
+      where: { cita_id: parseInt(cita_id) },
+      select: {
+        expediente_id: true,
+        diagnostico: true,
+        sintomas: true,
+        tratamiento: true,
+        created_at: true,
+        cita: {
+          select: {
+            motivo_consulta: true,
+            expediente: {select: {folio: true}},
+            tipo: { select: { tipo: true } },
+            estado: { select: { nombre: true } },
+            medico: {
+              select: {
+                usuario: {
+                  select: {
+                    primer_nombre: true,
+                    segundo_nombre: true,
+                    primer_apellido: true,
+                    segundo_apellido: true,
+                    cedula: true,
+                    telefono: true,
+                  },
+                },
+              },
+            },
+            paciente: {
+              select: {
+                usuario: {
+                  select: {
+                    primer_nombre: true,
+                    segundo_nombre: true,
+                    primer_apellido: true,
+                    segundo_apellido: true,
+                    cedula: true,
+                    telefono: true,
+                    fecha_nacimiento: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        receta: {
+          select: {
+            nombre: true,
+            dosis: true,
+            frecuencia: true,
+            duracion: true,
+            instrucciones: true,
+          },
+        },
+        ordenes: {
+          select: {
+            tipo_examen: true,
+            instrucciones: true,
+            created_at: true,
+            estado: { select: { nombre: true } },
+          },
+        },
+      },
+    });
+
+    if (!consulta) {
+      return res.status(404).json({ message: "No se encontro la consulta" });
+    }
+
+    return res.status(200).json({ consulta });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Error interno del servidor" });
@@ -541,4 +680,5 @@ module.exports = {
   reprogramarCita,
   obtenerCitasPorDoctor,
   atenderCita,
+  obtenerConsultaPorId,
 };
