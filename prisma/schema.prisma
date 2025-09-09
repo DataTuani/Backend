@@ -1,0 +1,283 @@
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Usuario {
+  id               Int      @id @default(autoincrement())
+  primer_nombre    String
+  segundo_nombre   String
+  primer_apellido  String
+  segundo_apellido String
+  fecha_nacimiento DateTime
+  genero           String
+  telefono         String?
+  correo           String   @unique
+  contraseña      String
+  direccion        String?
+  cedula           String   @unique
+  created_at       DateTime @default(now())
+  rol_id           Int
+  foto_url         String?  @default("https://zwkidxtvznccwowtooik.supabase.co/storage/v1/object/public/Profile-Images/user.png")
+
+  rol          Rol            @relation(fields: [rol_id], references: [id])
+  Paciente     Paciente?
+  Personal     Personal?
+  Notificacion Notificacion[]
+
+  @@map("usuario")
+}
+
+model Rol {
+  id       Int       @id @default(autoincrement())
+  nombre   String    @unique
+  usuarios Usuario[]
+
+  @@map("rol")
+}
+
+model Paciente {
+  id              Int     @id @default(autoincrement())
+  usuario_id      Int     @unique
+  grupo_sanguineo String?
+
+  usuario      Usuario             @relation(fields: [usuario_id], references: [id])
+  citas        Cita[]
+  expediente   Expediente[]
+  enfermedades EnfermedadCronica[]
+  alergias     Alergia[]
+  filaVirtual  FilaVirtual[]
+
+  @@map("paciente")
+}
+
+model Personal {
+  id              Int @id @default(autoincrement())
+  usuario_id      Int @unique
+  hospital_id     Int
+  especialidad_id Int
+
+  usuario      Usuario      @relation(fields: [usuario_id], references: [id])
+  hospital     Hospital     @relation(fields: [hospital_id], references: [id])
+  especialidad Especialidad @relation(fields: [especialidad_id], references: [id])
+  citas        Cita[]
+  turnos       Turno[]
+
+  @@map("personal")
+}
+
+model Turno {
+  id          Int      @id @default(autoincrement())
+  medico_id   Int
+  hospital_id Int
+  dia_semana  Int // 0-6
+  hora_inicio DateTime
+  hora_fin    DateTime
+
+  medico   Personal @relation(fields: [medico_id], references: [id])
+  hospital Hospital @relation(fields: [hospital_id], references: [id])
+}
+
+model Hospital {
+  id        Int     @id @default(autoincrement())
+  nombre    String
+  direccion String
+  codigo    String  @unique @default("DEFAULT-CODIGO")
+  telefono  String?
+  email     String?
+
+  personal    Personal[]
+  citas       Cita[]
+  filaVirtual FilaVirtual[]
+  expediente  Expediente[]
+  turnos      Turno[]
+
+  @@map("hospital")
+}
+
+model Especialidad {
+  id       Int        @id @default(autoincrement())
+  nombre   String
+  personal Personal[]
+
+  @@map("especialidad")
+}
+
+model Cita {
+  id Int @id @default(autoincrement())
+
+  paciente_id     Int
+  hospital_id     Int
+  fecha_hora      DateTime
+  motivo_consulta String?
+
+  medico_id     Int
+  estado_id     Int
+  expediente_id Int?
+
+  paciente   Paciente    @relation(fields: [paciente_id], references: [id])
+  medico     Personal    @relation(fields: [medico_id], references: [id])
+  hospital   Hospital    @relation(fields: [hospital_id], references: [id])
+  estado     Estado      @relation(fields: [estado_id], references: [id])
+  expediente Expediente? @relation(fields: [expediente_id], references: [id])
+  consulta   Consulta?
+
+  @@map("cita")
+}
+
+model Estado {
+  id          Int           @id @default(autoincrement())
+  nombre      String // pendiente, confirmada, cancelada, en espera, atendido
+  citas       Cita[]
+  filaVirtual FilaVirtual[]
+  ordenes     OrdenLaboratorio[]
+
+  @@map("estado")
+}
+
+model Consulta {
+  id            Int      @id @default(autoincrement())
+  cita_id       Int?     @unique
+  expediente_id Int
+  sintomas      String?
+  diagnostico   String?
+  tratamiento   String?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  cita         Cita?                  @relation(fields: [cita_id], references: [id])
+  expediente   Expediente             @relation(fields: [expediente_id], references: [id])
+  signos       SignosVitales[]
+  resultados   ResultadoLaboratorio[]
+  receta MedicamentoRecetado[]
+  ordenes      OrdenLaboratorio[]
+
+  @@map("consulta")
+}
+
+model MedicamentoRecetado {
+  id            Int     @id @default(autoincrement())
+  consulta_id   Int
+  nombre        String
+  dosis         String
+  frecuencia    String
+  duracion      String
+  instrucciones String?
+
+  consulta Consulta @relation(fields: [consulta_id], references: [id])
+
+  @@map("medicamento_recetado")
+}
+model OrdenLaboratorio {
+  id          Int      @id @default(autoincrement())
+  consulta_id Int
+  tipo_examen String
+  instrucciones String?
+  estado_id     Int
+  created_at  DateTime @default(now())
+
+
+  consulta Consulta @relation(fields: [consulta_id], references: [id])
+  estado     Estado      @relation(fields: [estado_id], references: [id])
+
+  @@map("orden_laboratorio")
+}
+
+
+model Expediente {
+  id             Int      @id @default(autoincrement())
+  paciente_id    Int      @unique
+  folio          String?
+  fecha_apertura DateTime @default(now())
+  hospital_id    Int
+  // responsable    String?
+  observaciones  String?
+
+  paciente   Paciente               @relation(fields: [paciente_id], references: [id])
+  hospital   Hospital               @relation(fields: [hospital_id], references: [id])
+  consultas  Consulta[]
+  resultados ResultadoLaboratorio[]
+  Cita       Cita[]
+
+  @@map("expediente")
+}
+
+model SignosVitales {
+  id          Int    @id @default(autoincrement())
+  consulta_id Int
+  tipo        String
+  valor       String
+
+  consulta Consulta @relation(fields: [consulta_id], references: [id])
+
+  @@map("signos_vitales")
+}
+
+model ResultadoLaboratorio {
+  id              Int      @id @default(autoincrement())
+  expediente_id   Int
+  consulta_id     Int
+  tipo_examen     String
+  archivo_url     String?
+  fecha_resultado DateTime
+
+  expediente Expediente @relation(fields: [expediente_id], references: [id])
+  consulta   Consulta   @relation(fields: [consulta_id], references: [id])
+
+  @@map("resultado_laboratorio")
+}
+
+model EnfermedadCronica {
+  id          Int    @id @default(autoincrement())
+  paciente_id Int
+  descripcion String
+
+  paciente Paciente @relation(fields: [paciente_id], references: [id])
+
+  @@map("enfermedad_cronica")
+}
+
+model Alergia {
+  id          Int    @id @default(autoincrement())
+  paciente_id Int
+  descripcion String
+
+  paciente Paciente @relation(fields: [paciente_id], references: [id])
+
+  @@map("alergia")
+}
+
+model Notificacion {
+  id         Int      @id @default(autoincrement())
+  usuario_id Int
+  titulo     String
+  mensaje    String
+  leida      Boolean  @default(false)
+  fecha      DateTime
+
+  usuario Usuario @relation(fields: [usuario_id], references: [id])
+
+  @@map("notificacion")
+}
+
+model FilaVirtual {
+  id              Int       @id @default(autoincrement())
+  paciente_id     Int
+  hospital_id     Int
+  numero_turno    Int
+  estado_id       Int
+  hora_asignacion DateTime
+  hora_estimacion DateTime?
+
+  paciente Paciente @relation(fields: [paciente_id], references: [id])
+  hospital Hospital @relation(fields: [hospital_id], references: [id])
+  estado   Estado   @relation(fields: [estado_id], references: [id])
+
+  @@map("fila_virtual")
+}
