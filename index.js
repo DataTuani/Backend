@@ -51,14 +51,14 @@ io.on("connection", (socket) => {
     console.log(`Usuario ${socket.id} se unió a la sala ${roomId}`);
     socket.to(roomId).emit("user-joined", socket.id);
   });
+socket.on("offer", ({ roomId, offer }) => {
+  socket.to(roomId).emit("offer", { offer }); // ✅ así llega como { offer: ... }
+});
 
-  socket.on("offer", ({ roomId, offer }) => {
-    socket.to(roomId).emit("offer", offer);
-  });
+socket.on("answer", ({ roomId, answer }) => {
+  socket.to(roomId).emit("answer", { answer }); // ✅ así llega como { answer: ... }
+});
 
-  socket.on("answer", ({ roomId, answer }) => {
-    socket.to(roomId).emit("answer", answer);
-  });
 
   socket.on("ice-candidate", ({ roomId, candidate }) => {
     socket.to(roomId).emit("ice-candidate", { candidate });
