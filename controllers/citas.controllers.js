@@ -13,13 +13,17 @@ const agendarCita = async (req, res) => {
       where: { id: paciente_id },
     });
     if (!paciente)
-      return res.status(404).json({ error: "Paciente no encontrado" });
+      return res
+        .status(404)
+        .json({ success: false, error: "Paciente no encontrado" });
 
     const hospital = await prisma.hospital.findUnique({
       where: { id: hospital_id },
     });
     if (!hospital)
-      return res.status(404).json({ error: "Hospital no encontrado" });
+      return res
+        .status(404)
+        .json({ success: false, error: "Hospital no encontrado" });
 
     const fecha = new Date(fecha_hora);
     const diaSemana = fecha.getDay();
@@ -42,6 +46,7 @@ const agendarCita = async (req, res) => {
 
     if (citaExistente) {
       return res.status(400).json({
+        success: false,
         error: "El paciente ya tiene una cita programada para este día",
       });
     }
@@ -96,6 +101,7 @@ const agendarCita = async (req, res) => {
 
     if (medicosValidos.length === 0) {
       return res.status(400).json({
+        success: false,
         error: "No hay médicos disponibles en el bloque seleccionado",
       });
     }
@@ -168,12 +174,17 @@ const agendarCita = async (req, res) => {
       },
     });
 
-    return res
-      .status(201)
-      .json({ message: "Cita agendada exitosamente", expediente, nuevaCita });
+    return res.status(201).json({
+      success: true,
+      message: "Cita agendada exitosamente",
+      expediente,
+      nuevaCita,
+    });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Error interno del servidor" });
+    return res
+      .status(500)
+      .json({ success: false, error: "Error interno del servidor" });
   }
 };
 
@@ -181,7 +192,7 @@ const obtenerCitasPorHospital = async (req, res) => {
   const hospital_id = Number(req.query.hospital_id);
 
   if (isNaN(hospital_id)) {
-    return res.status(400).json({ error: "Hospital inválido" });
+    return res.status(400).json({ success: false, error: "Hospital inválido" });
   }
 
   try {
@@ -222,15 +233,18 @@ const obtenerCitasPorHospital = async (req, res) => {
     });
 
     if (citas.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No se encontraron citas para este hospital" });
+      return res.status(404).json({
+        success: false,
+        error: "No se encontraron citas para este hospital",
+      });
     }
 
-    return res.status(200).json({ citas });
+    return res.status(200).json({ success: true, citas });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ error: "Error interno del servidor" });
+    return res
+      .status(500)
+      .json({ success: false, error: "Error interno del servidor" });
   }
 };
 
@@ -238,7 +252,7 @@ const obtenerCitasPorPaciente = async (req, res) => {
   const paciente_id = Number(req.query.paciente_id);
 
   if (isNaN(paciente_id)) {
-    return res.status(400).json({ error: "Paciente inválido" });
+    return res.status(400).json({ success: false, error: "Paciente inválido" });
   }
 
   try {
@@ -254,15 +268,18 @@ const obtenerCitasPorPaciente = async (req, res) => {
     });
 
     if (citas.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No se encontraron citas para este paciente" });
+      return res.status(404).json({
+        success: false,
+        error: "No se encontraron citas para este paciente",
+      });
     }
 
-    return res.status(200).json({ citas });
+    return res.status(200).json({ success: true, citas });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ error: "Error interno del servidor" });
+    return res
+      .status(500)
+      .json({ success: false, error: "Error interno del servidor" });
   }
 };
 
@@ -270,7 +287,7 @@ const obtenerCitasPorDoctor = async (req, res) => {
   const personal_id = Number(req.query.personal_id);
 
   if (isNaN(personal_id)) {
-    return res.status(400).json({ error: "Personal inválido" });
+    return res.status(400).json({ success: false, error: "Personal inválido" });
   }
 
   try {
@@ -286,15 +303,18 @@ const obtenerCitasPorDoctor = async (req, res) => {
     });
 
     if (citas.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No se encontraron citas de este doctor" });
+      return res.status(404).json({
+        success: false,
+        error: "No se encontraron citas de este doctor",
+      });
     }
 
-    return res.status(200).json({ citas });
+    return res.status(200).json({ success: true, citas });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ error: "Error interno del servidor" });
+    return res
+      .status(500)
+      .json({ success: false, error: "Error interno del servidor" });
   }
 };
 
@@ -302,7 +322,7 @@ const obtenerCitaPorId = async (req, res) => {
   const { cita_id } = req.params;
 
   if (isNaN(cita_id)) {
-    return res.status(400).json({ error: "Cita inválida" });
+    return res.status(400).json({ success: false, error: "Cita inválida" });
   }
 
   try {
@@ -343,13 +363,17 @@ const obtenerCitaPorId = async (req, res) => {
     });
 
     if (!cita) {
-      return res.status(404).json({ message: "No se encontro la cita" });
+      return res
+        .status(404)
+        .json({ success: false, error: "No se encontro la cita" });
     }
 
     return res.status(200).json({ cita });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ error: "Error interno del servidor" });
+    return res
+      .status(500)
+      .json({ success: false, error: "Error interno del servidor" });
   }
 };
 
@@ -357,7 +381,7 @@ const obtenerConsultaPorId = async (req, res) => {
   const { cita_id } = req.params;
 
   if (isNaN(cita_id)) {
-    return res.status(400).json({ error: "Cita inválida" });
+    return res.status(400).json({ success: false, error: "Cita inválida" });
   }
 
   try {
@@ -372,7 +396,7 @@ const obtenerConsultaPorId = async (req, res) => {
         cita: {
           select: {
             motivo_consulta: true,
-            expediente: {select: {folio: true}},
+            expediente: { select: { folio: true } },
             tipo: { select: { tipo: true } },
             estado: { select: { nombre: true } },
             medico: {
@@ -427,13 +451,17 @@ const obtenerConsultaPorId = async (req, res) => {
     });
 
     if (!consulta) {
-      return res.status(404).json({ message: "No se encontro la consulta" });
+      return res
+        .status(404)
+        .json({ success: false, error: "No se encontro la consulta" });
     }
 
-    return res.status(200).json({ consulta });
+    return res.status(200).json({ success: true, consulta });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ error: "Error interno del servidor" });
+    return res
+      .status(500)
+      .json({ success: false, error: "Error interno del servidor" });
   }
 };
 
@@ -441,7 +469,7 @@ const cancelarCita = async (req, res) => {
   const cita_id = Number(req.params.id);
 
   if (isNaN(cita_id)) {
-    return res.status(400).json({ error: "Cita inválida" });
+    return res.status(400).json({ success: false, error: "Cita inválida" });
   }
 
   try {
@@ -453,6 +481,7 @@ const cancelarCita = async (req, res) => {
     });
 
     return res.status(200).json({
+      success: true,
       message: "Cita cancelada correctamente",
       cita,
     });
@@ -460,10 +489,14 @@ const cancelarCita = async (req, res) => {
     console.error(error);
 
     if (error.code === "P2025") {
-      return res.status(404).json({ error: "Cita no encontrada" });
+      return res
+        .status(404)
+        .json({ success: false, error: "Cita no encontrada" });
     }
 
-    return res.status(500).json({ error: "Error interno del servidor" });
+    return res
+      .status(500)
+      .json({ success: false, error: "Error interno del servidor" });
   }
 };
 const reprogramarCita = async (req, res) => {
@@ -477,7 +510,9 @@ const reprogramarCita = async (req, res) => {
     });
 
     if (!citaExistente) {
-      return res.status(404).json({ error: "Cita no encontrada" });
+      return res
+        .status(404)
+        .json({ success: false, error: "Cita no encontrada" });
     }
 
     const hospital_id = citaExistente.hospital_id;
@@ -501,6 +536,7 @@ const reprogramarCita = async (req, res) => {
 
     if (citaOtroDia) {
       return res.status(400).json({
+        success: false,
         error: "El paciente ya tiene otra cita programada para este día",
       });
     }
@@ -517,9 +553,10 @@ const reprogramarCita = async (req, res) => {
     });
 
     if (turnosValidos.length === 0) {
-      return res
-        .status(400)
-        .json({ error: "No hay turnos disponibles en esa fecha" });
+      return res.status(400).json({
+        success: false,
+        error: "No hay turnos disponibles en esa fecha",
+      });
     }
 
     const medicosDisponibles = [];
@@ -535,9 +572,10 @@ const reprogramarCita = async (req, res) => {
     }
 
     if (medicosDisponibles.length === 0) {
-      return res
-        .status(400)
-        .json({ error: "Todos los médicos tienen otra cita a esa hora" });
+      return res.status(400).json({
+        success: false,
+        error: "Todos los médicos tienen otra cita a esa hora",
+      });
     }
 
     const medicosConCitas = await Promise.all(
@@ -557,9 +595,10 @@ const reprogramarCita = async (req, res) => {
     const medicoDisponible = medicosConCitas[0]?.medico;
 
     if (!medicoDisponible) {
-      return res
-        .status(400)
-        .json({ error: "No hay médicos disponibles en esa fecha" });
+      return res.status(400).json({
+        success: false,
+        error: "No hay médicos disponibles en esa fecha",
+      });
     }
 
     const citaReprogramada = await prisma.cita.update({
@@ -578,12 +617,15 @@ const reprogramarCita = async (req, res) => {
     });
 
     return res.status(200).json({
+      success: true,
       message: "Cita reprogramada con éxito",
       cita: citaReprogramada,
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Error interno del servidor" });
+    return res
+      .status(500)
+      .json({ success: false, error: "Error interno del servidor" });
   }
 };
 
@@ -598,7 +640,10 @@ const atenderCita = async (req, res) => {
       include: { expediente: true },
     });
 
-    if (!cita) return res.status(404).json({ error: "Cita no encontrada" });
+    if (!cita)
+      return res
+        .status(404)
+        .json({ success: false, error: "Cita no encontrada" });
 
     const consulta = await prisma.consulta.upsert({
       where: { cita_id: cita.id },
@@ -621,7 +666,8 @@ const atenderCita = async (req, res) => {
           create: ordenes?.map((o) => ({
             tipo_examen: o.tipo_examen,
             instrucciones: o.instrucciones,
-            estado_id: 1,
+            estado: { connect: { id: 1 } }, // ✅ aquí
+            expediente: { connect: { id: cita.expediente_id } },
           })),
         },
       },
@@ -644,14 +690,15 @@ const atenderCita = async (req, res) => {
           create: ordenes?.map((o) => ({
             tipo_examen: o.tipo_examen,
             instrucciones: o.instrucciones,
-            estado_id: 1,
+            estado: { connect: { id: 1 } }, // ✅ aquí también
+            expediente: { connect: { id: cita.expediente_id } },
           })),
         },
       },
       include: {
         receta: true,
         ordenes: {
-          include: { estado: true }, // aquí solo true
+          include: { estado: true },
         },
       },
     });
@@ -662,12 +709,15 @@ const atenderCita = async (req, res) => {
     });
 
     return res.status(201).json({
+      success: true,
       message: "Consulta guardada exitosamente",
       consulta,
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Error al guardar consulta" });
+    return res
+      .status(500)
+      .json({ success: false, error: "Error al guardar consulta" });
   }
 };
 

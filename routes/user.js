@@ -92,7 +92,6 @@ router.get(
 router.put(
   "/:usuario_id/actualizar",
   validarJWT,
-
   [
     param("usuario_id")
       .isInt()
@@ -131,7 +130,7 @@ router.put(
     body("direccion")
       .optional()
       .isString()
-      .withMessage("La dirección es obligatoria"),
+      .withMessage("La dirección no es válida"),
     body("enfermedades_cronicas")
       .optional()
       .isArray()

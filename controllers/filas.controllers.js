@@ -11,9 +11,10 @@ const unirseFila = async (req, res) => {
       where: { paciente_id, estado_id: 5 },
     });
     if (existePacienteEnFila) {
-      return res
-        .status(400)
-        .json({ error: "El paciente ya está en la fila virtual" });
+      return res.status(400).json({
+        success: false,
+        error: "El paciente ya está en la fila virtual",
+      });
     }
 
     const ultimoTurno = await prisma.filaVirtual.findFirst({
@@ -45,12 +46,15 @@ const unirseFila = async (req, res) => {
     });
 
     return res.status(201).json({
+      success: true,
       message: "Te has unido a la fila virtual",
       turno: nuevoTurno,
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Error al unirse a la fila" });
+    return res
+      .status(500)
+      .json({ success: false, error: "Error al unirse a la fila" });
   }
 };
 
@@ -76,19 +80,23 @@ const estadoFilaPaciente = async (req, res) => {
     });
 
     if (!turnoPaciente) {
-      return res.json({
-        message: "El paciente no tiene un turno en espera en este hospital",
+      return res.status(400).json({
+        success: false,
+        error: "El paciente no tiene un turno en espera en este hospital",
       });
     }
 
     return res.status(200).json({
+      success: true,
       turno_actual: turnoActual ? turnoActual.numero_turno : null,
       turnoPaciente: turnoPaciente ? turnoPaciente.numero_turno : null,
       hora_estimacion: turnoPaciente ? turnoPaciente.hora_estimacion : null,
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Error al consultar fila" });
+    return res
+      .status(500)
+      .json({ success: false, error: "Error al consultar fila" });
   }
 };
 
@@ -110,12 +118,14 @@ const estadoFilaHospital = async (req, res) => {
 
     if (turnosEnFila.length === 0) {
       return res.json({
-        message: "No hay turnos en espera en este hospital",
+        success: false,
+        error: "No hay turnos en espera en este hospital",
         turnos: [],
       });
     }
 
     return res.status(200).json({
+      success: true,
       total: turnosEnFila.length,
       turnos: turnosEnFila.map((t) => ({
         numero_turno: t.numero_turno,
@@ -125,7 +135,9 @@ const estadoFilaHospital = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Error al consultar fila" });
+    return res
+      .status(500)
+      .json({ success: false, error: "Error al consultar fila" });
   }
 };
 
@@ -181,12 +193,16 @@ const avanzarFila = async (req, res) => {
       acumulador++;
     }
 
-    return res
-      .status(200)
-      .json({ message: "Fila actualizada", nuevacita: nuevaCita });
+    return res.status(200).json({
+      success: true,
+      message: "Fila actualizada",
+      nuevacita: nuevaCita,
+    });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Error al avanzar fila" });
+    return res
+      .status(500)
+      .json({ success: false, error: "Error al avanzar fila" });
   }
 };
 
@@ -199,9 +215,10 @@ const cancelarTurno = async (req, res) => {
     });
 
     if (!turno || turno.estado_id !== 5) {
-      return res
-        .status(400)
-        .json({ error: "El turno no existe o no está en espera" });
+      return res.status(400).json({
+        success: false,
+        error: "El turno no existe o no está en espera",
+      });
     }
 
     await prisma.filaVirtual.update({
@@ -209,10 +226,14 @@ const cancelarTurno = async (req, res) => {
       data: { estado_id: 2 },
     });
 
-    return res.status(200).json({ message: "Turno cancelado correctamente" });
+    return res
+      .status(200)
+      .json({ success: true, message: "Turno cancelado correctamente" });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Error al cancelar turno" });
+    return res
+      .status(500)
+      .json({ success: false, error: "Error al cancelar turno" });
   }
 };
 
@@ -225,12 +246,17 @@ const crearCitaDesdeFila = async (
     const paciente = await prisma.paciente.findUnique({
       where: { id: paciente_id },
     });
-    if (!paciente) throw new Error("Paciente no encontrado");
+    if (!paciente)  return res
+        .status(404)
+        .json({ success: false, error: "Paciente no encontrado" });
 
     const hospital = await prisma.hospital.findUnique({
       where: { id: hospital_id },
     });
-    if (!hospital) throw new Error("Hospital no encontrado");
+    if (!hospital)
+      return res
+        .status(404)
+        .json({ success: false, error: "Hospital no encontrado" });
 
     let expediente = await prisma.expediente.findFirst({
       where: { paciente_id },
@@ -280,7 +306,10 @@ const crearCitaDesdeFila = async (
     }
 
     if (medicosValidos.length === 0) {
-      throw new Error("No hay médicos disponibles en este momento");
+      return res.status(404).json({
+        success: false,
+        error: "No hay médicos disponibles en este momento",
+      });
     }
 
     const hoyInicio = new Date();
@@ -323,10 +352,16 @@ const crearCitaDesdeFila = async (
       },
     });
 
-    return nuevaCita;
+    return res.status(200).json({
+      success: true,
+      nuevaCita,
+    });
   } catch (error) {
     console.error("Error creando cita desde fila:", error.message);
-    throw error;
+    return res.status(404).json({
+      success: false,
+      error: "Error creando cita desde fila",
+    });
   }
 };
 

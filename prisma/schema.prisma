@@ -24,7 +24,6 @@ model Usuario {
   created_at       DateTime       @default(now())
   rol_id           Int
   foto_url         String?        @default("https://zwkidxtvznccwowtooik.supabase.co/storage/v1/object/public/Profile-Images/user.png")
-  
   Notificacion     Notificacion[]
   Paciente         Paciente?
   Personal         Personal?
@@ -112,24 +111,25 @@ model Cita {
   fecha_hora      DateTime
   estado_id       Int
   expediente_id   Int?
-  tipo_id         Int         @default(1)
   motivo_consulta String?
+  tipo_id         Int         @default(1)
   estado          Estado      @relation(fields: [estado_id], references: [id])
   expediente      Expediente? @relation(fields: [expediente_id], references: [id])
   hospital        Hospital    @relation(fields: [hospital_id], references: [id])
   medico          Personal    @relation(fields: [medico_id], references: [id])
   paciente        Paciente    @relation(fields: [paciente_id], references: [id])
-  consulta        Consulta?
   tipo            tipoCita    @relation(fields: [tipo_id], references: [id])
+  consulta        Consulta?
 
   @@map("cita")
 }
 
 model tipoCita {
-  id   Int    @id @default(autoincrement())
-  tipo String @unique
-  citas Cita[] 
-  @@map("tipo_cita") 
+  id    Int    @id @default(autoincrement())
+  tipo  String @unique
+  citas Cita[]
+
+  @@map("tipo_cita")
 }
 
 model Estado {
@@ -143,20 +143,19 @@ model Estado {
 }
 
 model Consulta {
-  id            Int                    @id @default(autoincrement())
-  cita_id       Int?                   @unique
+  id            Int                   @id @default(autoincrement())
+  cita_id       Int?                  @unique
   expediente_id Int
   diagnostico   String?
-  created_at    DateTime               @default(now())
+  created_at    DateTime              @default(now())
   sintomas      String?
   tratamiento   String?
-  updated_at    DateTime               @updatedAt
-  
-  cita          Cita?                  @relation(fields: [cita_id], references: [id])
-  expediente    Expediente             @relation(fields: [expediente_id], references: [id])
+  updated_at    DateTime              @updatedAt
+  cita          Cita?                 @relation(fields: [cita_id], references: [id])
+  expediente    Expediente            @relation(fields: [expediente_id], references: [id])
   receta        MedicamentoRecetado[]
   ordenes       OrdenLaboratorio[]
-  resultados    ResultadoLaboratorio[]
+  // resultado_laboratorio resultado_laboratorio[]
   signos        SignosVitales[]
 
   @@map("consulta")
@@ -176,30 +175,33 @@ model MedicamentoRecetado {
 }
 
 model OrdenLaboratorio {
-  id            Int      @id @default(autoincrement())
+  id            Int        @id @default(autoincrement())
+  expediente_id Int
   consulta_id   Int
   tipo_examen   String
   instrucciones String?
+  resultado_url String?
   estado_id     Int
-  created_at    DateTime @default(now())
-  consulta      Consulta @relation(fields: [consulta_id], references: [id])
-  estado        Estado   @relation(fields: [estado_id], references: [id])
+  created_at    DateTime   @default(now())
+  consulta      Consulta   @relation(fields: [consulta_id], references: [id])
+  estado        Estado     @relation(fields: [estado_id], references: [id])
+  expediente    Expediente @relation(fields: [expediente_id], references: [id])
 
   @@map("orden_laboratorio")
 }
 
 model Expediente {
-  id             Int                    @id @default(autoincrement())
-  paciente_id    Int                    @unique
+  id             Int                @id @default(autoincrement())
+  paciente_id    Int                @unique
   folio          String?
-  fecha_apertura DateTime               @default(now())
+  fecha_apertura DateTime           @default(now())
   hospital_id    Int
   observaciones  String?
   Cita           Cita[]
   consultas      Consulta[]
-  hospital       Hospital               @relation(fields: [hospital_id], references: [id])
-  paciente       Paciente               @relation(fields: [paciente_id], references: [id])
-  resultados     ResultadoLaboratorio[]
+  hospital       Hospital           @relation(fields: [hospital_id], references: [id])
+  paciente       Paciente           @relation(fields: [paciente_id], references: [id])
+  ordenLab       OrdenLaboratorio[]
 
   @@map("expediente")
 }
@@ -212,19 +214,6 @@ model SignosVitales {
   consulta    Consulta @relation(fields: [consulta_id], references: [id])
 
   @@map("signos_vitales")
-}
-
-model ResultadoLaboratorio {
-  id              Int        @id @default(autoincrement())
-  expediente_id   Int
-  consulta_id     Int
-  tipo_examen     String
-  archivo_url     String?
-  fecha_resultado DateTime
-  consulta        Consulta   @relation(fields: [consulta_id], references: [id])
-  expediente      Expediente @relation(fields: [expediente_id], references: [id])
-
-  @@map("resultado_laboratorio")
 }
 
 model EnfermedadCronica {
@@ -271,3 +260,15 @@ model FilaVirtual {
 
   @@map("fila_virtual")
 }
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+// model resultado_laboratorio {
+//   id              Int        @id @default(autoincrement())
+//   expediente_id   Int
+//   consulta_id     Int
+//   tipo_examen     String
+//   archivo_url     String?
+//   fecha_resultado DateTime
+//   consulta        Consulta   @relation(fields: [consulta_id], references: [id])
+//   expediente      Expediente @relation(fields: [expediente_id], references: [id])
+// }

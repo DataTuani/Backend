@@ -6,7 +6,7 @@ const getUserById = async (req, res) => {
   const { user_id, rol_id } = req.query;
 
   if (!user_id || !rol_id) {
-    return res.status(400).json({ error: "Faltan parámetros" });
+    return res.status(400).json({success: false, error: "Faltan parámetros" });
   }
 
   try {
@@ -33,7 +33,7 @@ const getUserById = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ error: "Usuario no encontrado" });
+      return res.status(404).json({success: false, error: "Usuario no encontrado" });
     }
 
     // Excluir la contraseña
@@ -42,7 +42,7 @@ const getUserById = async (req, res) => {
     return res.status(200).json({ user: userData });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Error al obtener usuario" });
+    return res.status(500).json({success: false, error: "Error al obtener usuario" });
   }
 };
 
@@ -55,7 +55,7 @@ const actualizarUsuario = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ error: "Usuario no encontrado" });
+      return res.status(404).json({success: false, error: "Usuario no encontrado" });
     }
 
     let updateData = { ...req.body };
@@ -63,7 +63,7 @@ const actualizarUsuario = async (req, res) => {
     if (req.file) {
       const fileExt = path.extname(req.file.originalname);
       const fileName = `user_${usuario_id}${fileExt}`;
-      
+
       const { error: uploadError } = await supabase.storage
         .from("Profile-Images")
         .upload(fileName, req.file.buffer, {
@@ -73,7 +73,9 @@ const actualizarUsuario = async (req, res) => {
 
       if (uploadError) {
         console.error(uploadError);
-        return res.status(500).json({ error: "Error al subir imagen" });
+        return res
+          .status(500)
+          .json({ success: false, error: "Error al subir imagen" });
       }
 
       const { data } = supabase.storage
@@ -88,13 +90,20 @@ const actualizarUsuario = async (req, res) => {
       data: updateData,
     });
 
-    return res.status(200).json({ message: "Usuario Actualizado",  user: updateUser });
+    return res
+      .status(200)
+      .json({
+        success: true,
+        message: "Usuario Actualizado",
+        user: updateUser,
+      });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Error al actualizar usuario" });
+    return res
+      .status(500)
+      .json({ success: false, error: "Error al actualizar usuario" });
   }
 };
-
 
 module.exports = {
   actualizarUsuario,

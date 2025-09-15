@@ -2,6 +2,7 @@ const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
 const prisma = new PrismaClient();
 const jwt = require("jsonwebtoken");
+const generarFolio = require("../utils/generarFolio");
 
 const register = async (req, res) => {
   const {
@@ -79,6 +80,38 @@ const register = async (req, res) => {
       },
     });
 
+    let expediente = await prisma.expediente.findFirst({
+      where: { paciente_id: nuevoUsuario.id },
+    });
+
+    const hospital = await prisma.hospital.findUnique({
+      where: { id: 1 },
+    });
+
+    if (!expediente) {
+      const ultimoExpediente = await prisma.expediente.findFirst({
+        where: { hospital_id: hospital.id },
+        orderBy: { id: "desc" },
+      });
+
+      let ultimoConsecutivo = 0;
+      if (ultimoExpediente && ultimoExpediente.folio) {
+        const partes = ultimoExpediente.folio.split("-");
+        ultimoConsecutivo = parseInt(partes[partes.length - 1], 10);
+      }
+
+      const nuevoFolio = generarFolio(hospital.codigo, ultimoConsecutivo);
+      expediente = await prisma.expediente.create({
+        data: {
+          paciente_id: nuevoUsuario.id,
+          hospital_id: hospital.id,
+          fecha_apertura: new Date(),
+          observaciones: null,
+          folio: nuevoFolio,
+        },
+      });
+    }
+
     const { contraseña, ...usuarioSinContraseña } = nuevoUsuario;
 
     return res.status(201).json({
@@ -120,12 +153,14 @@ const login = async (req, res) => {
     if (!usuario) {
       return res
         .status(400)
-        .json({success: false ,error: "No existe un usuario con ese correo" });
+        .json({ success: false, error: "No existe un usuario con ese correo" });
     }
 
     const passwordMatch = await bcrypt.compare(contraseña, usuario.contraseña);
     if (!passwordMatch) {
-      return res.status(400).json({ success: false, error: "Correo o contraseña incorrectos" });
+      return res
+        .status(400)
+        .json({ success: false, error: "Correo o contraseña incorrectos" });
     }
 
     const token = jwt.sign(
@@ -137,14 +172,16 @@ const login = async (req, res) => {
     const { contraseña: _, ...usuarioSinContraseña } = usuario;
 
     return res.status(201).json({
-       success: true,
+      success: true,
       message: "Login exitoso",
       usuario: usuarioSinContraseña,
       token,
     });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ success: false, error: "Error interno del servidor" });
+    return res
+      .status(500)
+      .json({ success: false, error: "Error interno del servidor" });
   }
 };
 
