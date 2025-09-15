@@ -61,7 +61,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("ice-candidate", ({ roomId, candidate }) => {
-    socket.to(roomId).emit("ice-candidate", candidate);
+    socket.to(roomId).emit("ice-candidate", { candidate });
   });
 
   socket.on("disconnect", () => {
