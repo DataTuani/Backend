@@ -30,7 +30,6 @@ const agendarCita = async (req, res) => {
     console.log("fecha_hora");
     console.log(fecha);
 
-
     const inicioDia = new Date(fecha);
     inicioDia.setHours(0, 0, 0, 0);
 
@@ -429,7 +428,6 @@ const obtenerConsultaPorId = async (req, res) => {
     const consulta = await prisma.consulta.findUnique({
       where: { cita_id: parseInt(cita_id) },
       select: {
-        
         expediente_id: true,
         diagnostico: true,
         sintomas: true,
@@ -709,7 +707,7 @@ const atenderCita = async (req, res) => {
           create: ordenes?.map((o) => ({
             tipo_examen: o.tipo_examen,
             instrucciones: o.instrucciones,
-            estado: { connect: { id: 1 } },
+            estado: { connect: { id: 1 } }, // ✅ aquí
             expediente: { connect: { id: cita.expediente_id } },
           })),
         },
@@ -733,7 +731,7 @@ const atenderCita = async (req, res) => {
           create: ordenes?.map((o) => ({
             tipo_examen: o.tipo_examen,
             instrucciones: o.instrucciones,
-            estado: { connect: { id: 1 } }, // ✅ aquí también
+            estado: { connect: { id: 1 } },
             expediente: { connect: { id: cita.expediente_id } },
           })),
         },
@@ -750,6 +748,31 @@ const atenderCita = async (req, res) => {
       where: { id: cita.id },
       data: { estado_id: 6 },
     });
+
+    const fechaBase = new Date(cita.fecha_hora);
+    const inicioDelDia = new Date(fechaBase.setHours(0, 0, 0, 0));
+    const finDelDia = new Date(fechaBase.setHours(23, 59, 59, 999));
+
+    const siguiente = await prisma.cita.findFirst({
+      where: {
+        estado_id: { not: 6 },
+        numero_turno: {
+          gt: cita.numero_turno,
+        },
+        fecha_hora: {
+          gte: inicioDelDia,
+          lte: finDelDia,
+        },
+      },
+      orderBy: { numero_turno: "asc" },
+    });
+
+    if (siguiente) {
+      await prisma.cita.update({
+        where: { id: siguiente.id },
+        data: { estado_id: 5 },
+      });
+    }
 
     return res.status(201).json({
       success: true,
