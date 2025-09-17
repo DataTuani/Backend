@@ -15,14 +15,12 @@
     // Conectar al servidor
     const socket = io();
 
-    // Escuchar mensajes
     socket.on("mensaje", (data) => {
       const li = document.createElement("li");
       li.textContent = data.texto;
       document.getElementById("mensajes").appendChild(li);
     });
 
-    // Enviar mensaje
     function enviar() {
       const input = document.getElementById("msg");
       socket.emit("mensaje", { texto: input.value });
