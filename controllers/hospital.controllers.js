@@ -3,7 +3,7 @@ const prisma = new PrismaClient();
 
 const hospitales = async (req, res) => {
   try {
-    const turnoFila = await prisma.hospital.findMany({
+    const hospitales = await prisma.hospital.findMany({
       select: {
         id: true,
         nombre: true,
@@ -16,13 +16,13 @@ const hospitales = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      turnoFila,
+      hospitales,
     });
   } catch (error) {
     console.error(error);
     return res
       .status(500)
-      .json({ success: false, error: "Error al consultar fila" });
+      .json({ success: false, error: "Error al consultar hospitales" });
   }
 };
 
