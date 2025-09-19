@@ -3,8 +3,7 @@ const router = express.Router();
 const { body, query, param, validationResult } = require("express-validator");
 const citasController = require("../controllers/citas.controllers");
 const { validarJWT } = require("../middlewares/validarjwt");
-
-
+const upload = require("../middlewares/upload");
 
 /**
  * @swagger
@@ -105,7 +104,6 @@ const { validarJWT } = require("../middlewares/validarjwt");
  *         description: Token inválido o expirado
  */
 
-
 /**
  * @swagger
  * /api/citas/{cita_id}:
@@ -132,8 +130,6 @@ const { validarJWT } = require("../middlewares/validarjwt");
  *       401:
  *         description: Token inválido o expirado
  */
-
-
 
 /**
  * @swagger
@@ -227,43 +223,52 @@ const { validarJWT } = require("../middlewares/validarjwt");
  *         description: Token inválido
  */
 
-
-
-
 // NUUEVA CITA
 router.post(
   "/",
-  validarJWT, // middleware por ruta
+  validarJWT,
+  upload.single("Motivo-Consulta"),
+
   [
-    body("paciente_id").isInt().withMessage("Paciente invalido"),
-    body("hospital_id").isInt().withMessage("Medico invalido"),
+    body("paciente_id").toInt().isInt().withMessage("Paciente invalido"),
+    body("hospital_id").toInt().isInt().withMessage("Medico invalido"),
     body("fecha_hora").isISO8601().withMessage("Fecha/hora inválida"),
-    body("motivo_consulta").isString().withMessage("Motivo de consulta inválida"),
-    body("tipoCita").notEmpty().isInt().withMessage("Tipo inválido"),
+    body("motivo_consulta")
+      .isString()
+      .withMessage("Motivo de consulta inválida"),
+    body("tipoCita").toInt().notEmpty().isInt().withMessage("Tipo inválido"),
   ],
   (req, res, next) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    if (!errors.isEmpty())
+      return res.status(400).json({ errors: errors.array() });
     next();
   },
+
   citasController.agendarCita
 );
 
-
 router.post(
   "/atender/:cita_id",
-  validarJWT, 
+  validarJWT,
   [
     param("cita_id").isInt().withMessage("Cita inválida"),
     body("sintomas").isString().withMessage("Síntomas inválidos"),
     body("diagnostico").isString().withMessage("Diagnóstico inválido"),
     body("tratamiento").isString().withMessage("Tratamiento inválido"),
-    body("medicamentos").optional().isArray().withMessage("Medicamentos debe ser un array"),
-    body("ordenes").optional().isArray().withMessage("Órdenes debe ser un array"),
+    body("medicamentos")
+      .optional()
+      .isArray()
+      .withMessage("Medicamentos debe ser un array"),
+    body("ordenes")
+      .optional()
+      .isArray()
+      .withMessage("Órdenes debe ser un array"),
   ],
   (req, res, next) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    if (!errors.isEmpty())
+      return res.status(400).json({ errors: errors.array() });
     next();
   },
   citasController.atenderCita
@@ -273,11 +278,16 @@ router.get(
   "/hospital",
   validarJWT,
   [
-    query("hospital_id").isInt().withMessage("Hospital inválido").notEmpty().withMessage("Hospital es requerido"),
+    query("hospital_id")
+      .isInt()
+      .withMessage("Hospital inválido")
+      .notEmpty()
+      .withMessage("Hospital es requerido"),
   ],
   (req, res, next) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    if (!errors.isEmpty())
+      return res.status(400).json({ errors: errors.array() });
     next();
   },
   citasController.obtenerCitasPorHospital
@@ -288,11 +298,16 @@ router.get(
   "/paciente",
   validarJWT,
   [
-    query("paciente_id").isInt().withMessage("Paciente inválido").notEmpty().withMessage("Paciente es requerido"),
+    query("paciente_id")
+      .isInt()
+      .withMessage("Paciente inválido")
+      .notEmpty()
+      .withMessage("Paciente es requerido"),
   ],
   (req, res, next) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    if (!errors.isEmpty())
+      return res.status(400).json({ errors: errors.array() });
     next();
   },
   citasController.obtenerCitasPorPaciente
@@ -303,11 +318,16 @@ router.get(
   "/doctor",
   validarJWT,
   [
-    query("personal_id").isInt().withMessage("Personal inválido").notEmpty().withMessage("Personal es requerido"),
+    query("personal_id")
+      .isInt()
+      .withMessage("Personal inválido")
+      .notEmpty()
+      .withMessage("Personal es requerido"),
   ],
   (req, res, next) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    if (!errors.isEmpty())
+      return res.status(400).json({ errors: errors.array() });
     next();
   },
   citasController.obtenerCitasPorDoctor
@@ -318,44 +338,56 @@ router.get(
   "/:cita_id",
   validarJWT,
   [
-    param("cita_id").isInt().withMessage("Id inválido").notEmpty().withMessage("Id es requerido"),
+    param("cita_id")
+      .isInt()
+      .withMessage("Id inválido")
+      .notEmpty()
+      .withMessage("Id es requerido"),
   ],
   (req, res, next) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    if (!errors.isEmpty())
+      return res.status(400).json({ errors: errors.array() });
     next();
   },
   citasController.obtenerCitaPorId
 );
-
 
 // CONSULTA POR ID CITA
 router.get(
   "/consulta/:cita_id",
   validarJWT,
   [
-    param("cita_id").isInt().withMessage("Id inválido").notEmpty().withMessage("Id es requerido"),
+    param("cita_id")
+      .isInt()
+      .withMessage("Id inválido")
+      .notEmpty()
+      .withMessage("Id es requerido"),
   ],
   (req, res, next) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    if (!errors.isEmpty())
+      return res.status(400).json({ errors: errors.array() });
     next();
   },
   citasController.obtenerConsultaPorId
 );
-
-
 
 // CANCELAR CITA
 router.put(
   "/:id/cancelar",
   validarJWT,
   [
-    param("id").isInt().withMessage("Id inválido").notEmpty().withMessage("Id es requerido"),
+    param("id")
+      .isInt()
+      .withMessage("Id inválido")
+      .notEmpty()
+      .withMessage("Id es requerido"),
   ],
   (req, res, next) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    if (!errors.isEmpty())
+      return res.status(400).json({ errors: errors.array() });
     next();
   },
   citasController.cancelarCita

@@ -1,4 +1,5 @@
 require("dotenv").config();
+require("./jobs/citasCron");
 const express = require("express");
 const path = require("path");
 
@@ -25,6 +26,7 @@ const swaggerSpec = swaggerJsdoc({
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
 // Rutas

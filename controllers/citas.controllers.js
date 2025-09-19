@@ -2,7 +2,9 @@ const { PrismaClient } = require("@prisma/client");
 const generarFolio = require("../utils/generarFolio");
 const validarBloqueDisponible = require("../utils/validarBloque");
 const e = require("express");
+const { supabase } = require("../utils/supabase");
 const prisma = new PrismaClient();
+const path = require("path");
 
 const agendarCita = async (req, res) => {
   const { paciente_id, hospital_id, fecha_hora, motivo_consulta, tipoCita } =
@@ -25,8 +27,14 @@ const agendarCita = async (req, res) => {
         .status(404)
         .json({ success: false, error: "Hospital no encontrado" });
 
-    const fecha = new Date(fecha_hora);
-
+    const fecha = new Date(
+      new Date(fecha_hora).toLocaleString("en-US", {
+        timeZone: "America/Managua",
+      })
+    );
+    const fechaUTC = new Date(
+      fecha.getTime() - fecha.getTimezoneOffset() * 60000
+    );
     console.log("fecha_hora");
     console.log(fecha);
 
@@ -160,6 +168,31 @@ const agendarCita = async (req, res) => {
     });
 
     const nuevoTurno = ultimoTurno ? ultimoTurno.numero_turno + 1 : 1;
+    let motivoConsultaImage = null;
+    if (req.file) {
+      const fileExt = path.extname(req.file.originalname);
+      const fileName = `motivoconsulta_${paciente_id}_${fecha_hora}${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("Motivo-Consulta")
+        .upload(fileName, req.file.buffer, {
+          contentType: req.file.mimetype,
+          upsert: true,
+        });
+
+      if (uploadError) {
+        console.error(uploadError);
+        return res
+          .status(500)
+          .json({ success: false, error: "Error al subir imagen" });
+      }
+
+      const { data } = supabase.storage
+        .from("Motivo-Consulta")
+        .getPublicUrl(fileName);
+
+       motivoConsultaImage = data.publicUrl;
+    }
 
     const nuevaCita = await prisma.cita.create({
       data: {
@@ -175,6 +208,7 @@ const agendarCita = async (req, res) => {
 
         tipo: { connect: { id: tipoCita } },
         numero_turno: nuevoTurno,
+        imagen_url: motivoConsultaImage,
       },
       include: {
         paciente: {
@@ -239,6 +273,7 @@ const obtenerCitasPorHospital = async (req, res) => {
       where: { hospital_id: parseInt(hospital_id) },
       select: {
         motivo_consulta: true,
+        imagen_url: true,
         fecha_hora: true,
         paciente: {
           select: {
@@ -369,6 +404,8 @@ const obtenerCitaPorId = async (req, res) => {
       where: { id: parseInt(cita_id) },
       select: {
         motivo_consulta: true,
+        imagen_url: true,
+
         fecha_hora: true,
         paciente: {
           select: {
@@ -437,6 +474,8 @@ const obtenerConsultaPorId = async (req, res) => {
           select: {
             numero_turno: true,
             motivo_consulta: true,
+        imagen_url: true,
+
             expediente: { select: { folio: true } },
             tipo: { select: { tipo: true } },
             estado: { select: { nombre: true } },

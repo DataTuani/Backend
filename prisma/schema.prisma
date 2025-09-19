@@ -104,8 +104,8 @@ model Especialidad {
 
 model Cita {
   id              Int         @id @default(autoincrement())
-  roomId          String?  
-  numero_turno    Int?    
+  roomId          String?
+  numero_turno    Int?
   paciente_id     Int
   medico_id       Int
   hospital_id     Int
@@ -114,6 +114,7 @@ model Cita {
   expediente_id   Int?
   motivo_consulta String?
   tipo_id         Int         @default(1)
+  imagen_url      String?
   estado          Estado      @relation(fields: [estado_id], references: [id])
   expediente      Expediente? @relation(fields: [expediente_id], references: [id])
   hospital        Hospital    @relation(fields: [hospital_id], references: [id])
@@ -239,6 +240,7 @@ model Notificacion {
   id         Int      @id @default(autoincrement())
   usuario_id Int
   titulo     String
+  cita_id    Int?
   mensaje    String
   leida      Boolean  @default(false)
   fecha      DateTime
