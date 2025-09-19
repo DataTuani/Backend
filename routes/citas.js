@@ -6,15 +6,19 @@ const { validarJWT } = require("../middlewares/validarjwt");
 const upload = require("../middlewares/upload");
 
 /**
- * @swagger
- * /api/citas/:
+ * @openapi
+ * /api/citas:
  *   post:
  *     summary: Agendar una nueva cita
- *     description: Crea una cita para un paciente en un hospital con fecha y motivo de consulta.
  *     tags:
  *       - Citas
- *     security:
- *       - bearerAuth: []
+ *     parameters:
+ *       - in: header
+ *         name: x-token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Token JWT de autenticación
  *     requestBody:
  *       required: true
  *       content:
@@ -26,6 +30,7 @@ const upload = require("../middlewares/upload");
  *               - hospital_id
  *               - fecha_hora
  *               - motivo_consulta
+ *               - tipoCita
  *             properties:
  *               paciente_id:
  *                 type: integer
@@ -40,8 +45,11 @@ const upload = require("../middlewares/upload");
  *               motivo_consulta:
  *                 type: string
  *                 example: "Dolor de cabeza"
+ *               tipoCita:
+ *                 type: integer
+ *                 example: 1
  *     responses:
- *       200:
+ *       201:
  *         description: Cita agendada correctamente
  *       400:
  *         description: Error en los datos enviados
@@ -50,97 +58,48 @@ const upload = require("../middlewares/upload");
  */
 
 /**
- * @swagger
- * /api/citas/atender/{cita_id}:
- *   post:
- *     summary: Atender una cita médica
- *     tags:
- *       - Citas
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: cita_id
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID de la cita a atender
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - sintomas
- *               - diagnostico
- *               - tratamiento
- *             properties:
- *               sintomas:
- *                 type: string
- *                 example: "Fiebre, tos y dolor de cabeza"
- *               diagnostico:
- *                 type: string
- *                 example: "Gripe común"
- *               tratamiento:
- *                 type: string
- *                 example: "Reposo, hidratación y paracetamol"
- *               medicamentos:
- *                 type: array
- *                 items:
- *                   type: string
- *                 example: ["Paracetamol 500mg", "Jarabe para la tos"]
- *               ordenes:
- *                 type: array
- *                 items:
- *                   type: string
- *                 example: ["Análisis de sangre", "Radiografía de tórax"]
- *     responses:
- *       200:
- *         description: Cita atendida correctamente
- *       400:
- *         description: Error en los datos enviados
- *       401:
- *         description: Token inválido o expirado
- */
-
-/**
- * @swagger
+ * @openapi
  * /api/citas/{cita_id}:
- *   post:
+ *   get:
  *     summary: Obtener Cita por Id
  *     tags:
  *       - Citas
- *     security:
- *       - bearerAuth: []
  *     parameters:
+ *       - in: header
+ *         name: x-token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Token JWT de autenticación
  *       - in: path
  *         name: cita_id
  *         required: true
  *         schema:
  *           type: integer
  *         description: ID de la cita a obtener
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
  *     responses:
+ *       200:
+ *         description: Cita encontrada
+ *       400:
+ *         description: ID inválido
  *       401:
  *         description: Token inválido o expirado
  */
 
 /**
- * @swagger
+ * @openapi
  * /api/citas/hospital:
  *   get:
  *     summary: Obtener citas por hospital
  *     tags:
  *       - Citas
- *     security:
- *       - bearerAuth: []
  *     parameters:
+ *       - in: header
+ *         name: x-token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Token JWT de autenticación
  *       - in: query
  *         name: hospital_id
  *         required: true
@@ -157,15 +116,19 @@ const upload = require("../middlewares/upload");
  */
 
 /**
- * @swagger
+ * @openapi
  * /api/citas/paciente:
  *   get:
  *     summary: Obtener citas por paciente
  *     tags:
  *       - Citas
- *     security:
- *       - bearerAuth: []
  *     parameters:
+ *       - in: header
+ *         name: x-token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Token JWT de autenticación
  *       - in: query
  *         name: paciente_id
  *         required: true
@@ -175,18 +138,26 @@ const upload = require("../middlewares/upload");
  *     responses:
  *       200:
  *         description: Lista de citas del paciente
+ *       400:
+ *         description: Paciente inválido
+ *       401:
+ *         description: Token inválido
  */
 
 /**
- * @swagger
+ * @openapi
  * /api/citas/doctor:
  *   get:
  *     summary: Obtener citas por doctor
  *     tags:
  *       - Citas
- *     security:
- *       - bearerAuth: []
  *     parameters:
+ *       - in: header
+ *         name: x-token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Token JWT de autenticación
  *       - in: query
  *         name: personal_id
  *         required: true
@@ -196,18 +167,26 @@ const upload = require("../middlewares/upload");
  *     responses:
  *       200:
  *         description: Lista de citas del doctor
+ *       400:
+ *         description: Doctor inválido
+ *       401:
+ *         description: Token inválido
  */
 
 /**
- * @swagger
+ * @openapi
  * /api/citas/{id}/cancelar:
  *   put:
  *     summary: Cancelar una cita
  *     tags:
  *       - Citas
- *     security:
- *       - bearerAuth: []
  *     parameters:
+ *       - in: header
+ *         name: x-token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Token JWT de autenticación
  *       - in: path
  *         name: id
  *         required: true

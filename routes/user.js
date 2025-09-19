@@ -15,9 +15,13 @@ const upload = require("../middlewares/upload");
  *     summary: Obtener información del usuario
  *     tags:
  *       - Usuario
- *     security:
- *       - bearerAuth: []
  *     parameters:
+ *       - in: header
+ *         name: x-token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Token JWT de autenticación
  *       - in: query
  *         name: user_id
  *         required: true
@@ -37,9 +41,13 @@ const upload = require("../middlewares/upload");
  *     summary: Actualizar datos de usuario
  *     tags:
  *       - Usuario
- *     security:
- *       - bearerAuth: []
  *     parameters:
+ *       - in: header
+ *         name: x-token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Token JWT de autenticación
  *       - in: path
  *         name: usuario_id
  *         required: true

@@ -59,7 +59,7 @@ const prisma = new PrismaClient();
 // };
 
 const estadoFilaPaciente = async (req, res) => {
-  const { hospital_id, paciente_id } = req.query;
+  const { hospital_id, paciente_id } = req.params;
   const hospitalIdNum = parseInt(hospital_id, 10);
   const pacienteIdNum = parseInt(paciente_id, 10);
 

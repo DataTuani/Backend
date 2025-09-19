@@ -8,17 +8,55 @@ const validate = require("../middlewares/validate");
 const { validarJWT } = require("../middlewares/validarjwt");
 
 
+/**
+ * @openapi
+ * /api/filas:
+ *   get:
+ *     summary: Consultar estado de la fila para un paciente
+ *     tags:
+ *       - Filas
+ *     parameters:
+ *       - in: header
+ *         name: x-token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Token JWT de autenticación
+ *       - in: query
+ *         name: paciente_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del paciente
+ *       - in: query
+ *         name: hospital_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del hospital
+ *     responses:
+ *       200:
+ *         description: Estado de la fila para el paciente
+ *       400:
+ *         description: Parámetros inválidos
+ *       401:
+ *         description: Token inválido
+ */
 
 /**
- * @swagger
+ * @openapi
  * /api/filas/filaHospital:
  *   get:
  *     summary: Consultar estado de la fila de un hospital
  *     tags:
  *       - Filas
- *     security:
- *       - bearerAuth: []
  *     parameters:
+ *       - in: header
+ *         name: x-token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Token JWT de autenticación
  *       - in: query
  *         name: hospital_id
  *         required: true
@@ -34,58 +72,6 @@ const { validarJWT } = require("../middlewares/validarjwt");
  *         description: Token inválido
  */
 
-/**
- * @swagger
- * /api/filas/{hospital_id}/avanzar:
- *   patch:
- *     summary: Avanzar la fila de un hospital
- *     tags:
- *       - Filas
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: hospital_id
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID del hospital cuya fila se va a avanzar
- *     responses:
- *       200:
- *         description: Fila avanzada correctamente
- *       400:
- *         description: Hospital inválido
- *       401:
- *         description: Token inválido
- */
-
-/**
- * @swagger
- * /api/filas/{turno_id}:
- *   delete:
- *     summary: Cancelar un turno específico
- *     tags:
- *       - Filas
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: turno_id
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID del turno a cancelar
- *     responses:
- *       200:
- *         description: Turno cancelado correctamente
- *       400:
- *         description: Turno inválido
- *       401:
- *         description: Token inválido
- */
-
-
-
 // // 📌 Unirse a la fila (crear turno)
 // router.post(
 //   "/",
@@ -100,12 +86,12 @@ const { validarJWT } = require("../middlewares/validarjwt");
 
 // 📌 Consultar estado de la fila para un paciente
 router.get(
-  "/",
+  "/:paciente_id/:hospital_id",
   validarJWT,
 
   validate([
-    query("paciente_id").isInt().withMessage("Paciente inválido"),
-    query("hospital_id").isInt().withMessage("Hospital inválido"),
+    param("paciente_id").isInt().withMessage("Paciente inválido"),
+    param("hospital_id").isInt().withMessage("Hospital inválido"),
   ]),
   filasController.estadoFilaPaciente
 );
