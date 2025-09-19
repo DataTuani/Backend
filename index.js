@@ -37,6 +37,7 @@ app.use("/api/user", require("./routes/user"));
 app.use("/api/expediente", require("./routes/expediente"));
 app.use("/api/ordenesLab", require("./routes/ordenesLab"));
 app.use("/api/hospitales", require("./routes/hospitales"));
+app.use("/api/enfermeria", require("./routes/enfermeria"));
 
 const server = http.createServer(app);
 

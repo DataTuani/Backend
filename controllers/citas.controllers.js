@@ -27,14 +27,8 @@ const agendarCita = async (req, res) => {
         .status(404)
         .json({ success: false, error: "Hospital no encontrado" });
 
-    const fecha = new Date(
-      new Date(fecha_hora).toLocaleString("en-US", {
-        timeZone: "America/Managua",
-      })
-    );
-    const fechaUTC = new Date(
-      fecha.getTime() - fecha.getTimezoneOffset() * 60000
-    );
+    const fecha = new Date(fecha_hora);
+
     console.log("fecha_hora");
     console.log(fecha);
 
@@ -191,7 +185,7 @@ const agendarCita = async (req, res) => {
         .from("Motivo-Consulta")
         .getPublicUrl(fileName);
 
-       motivoConsultaImage = data.publicUrl;
+      motivoConsultaImage = data.publicUrl;
     }
 
     const nuevaCita = await prisma.cita.create({
@@ -400,7 +394,7 @@ const obtenerCitaPorId = async (req, res) => {
   }
 
   try {
-    const cita = await prisma.cita.findMany({
+    const cita = await prisma.cita.findUnique({
       where: { id: parseInt(cita_id) },
       select: {
         motivo_consulta: true,
@@ -445,7 +439,16 @@ const obtenerCitaPorId = async (req, res) => {
         .json({ success: false, error: "No se encontro la cita" });
     }
 
-    return res.status(200).json({ cita });
+    const fechaLocal = new Date(cita.fecha_hora).toLocaleString("es-NI", {
+      timeZone: "America/Managua",
+    });
+
+    return res.status(200).json({
+      cita: {
+        ...cita,
+        fecha_hora: fechaLocal,
+      },
+    });
   } catch (error) {
     console.log(error);
     return res
@@ -474,7 +477,7 @@ const obtenerConsultaPorId = async (req, res) => {
           select: {
             numero_turno: true,
             motivo_consulta: true,
-        imagen_url: true,
+            imagen_url: true,
 
             expediente: { select: { folio: true } },
             tipo: { select: { tipo: true } },
