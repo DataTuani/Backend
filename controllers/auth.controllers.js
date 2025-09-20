@@ -147,6 +147,23 @@ const login = async (req, res) => {
             enfermedades: true,
           },
         },
+        Personal:{
+          select: {
+            id:true,
+            hospital: {
+              select: {
+                id: true,
+                nombre: true,
+                direccion: true,
+              }
+            },
+            especialidad: {
+              select: {
+                nombre: true
+              }
+            }
+          }
+        }
       },
     });
 

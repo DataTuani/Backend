@@ -5,7 +5,6 @@ const enfermeriaController = require("../controllers/enfermeria.controllers");
 const { validarJWT } = require("../middlewares/validarjwt");
 const upload = require("../middlewares/upload");
 
-
 /**
  * @openapi
  * /api/enfermeria/turno:
@@ -119,5 +118,19 @@ router.get(
   enfermeriaController.turnosHospital
 );
 
+router.get("/turnos-disponibles", validarJWT, [
+  query("hospital_id")
+    .notEmpty()
+    .toInt()
+    .isInt()
+    .withMessage("Hospital inválido"),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(400).json({ errors: errors.array() });
+    next();
+  },
+  enfermeriaController.turnos_disponibles,
+]);
 
 module.exports = router;

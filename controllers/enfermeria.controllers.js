@@ -86,7 +86,81 @@ const turnosHospital = async (req, res) => {
   }
 };
 
+const turnos_disponibles = async (req, res) => {
+  const { hospital_id } = req.query;
+
+  try {
+    const hoy = new Date();
+    const inicioDia = new Date(hoy);
+    inicioDia.setHours(0, 0, 0, 0);
+    const finDia = new Date(hoy);
+    finDia.setHours(23, 59, 59, 999);
+
+    console.log("inicioDia:", inicioDia);
+    console.log("finDia:", finDia);
+
+    // Turnos disponibles que cruzan el día consultado
+    const turnos = await prisma.turno.findMany({
+      where: {
+        hospital_id: Number(hospital_id),
+        hora_inicio: { lte: finDia },
+        hora_fin: { gte: inicioDia }, // 👈 ojo: así traes turnos que abarcan el día
+      },
+    });
+
+    console.log("turnos:", turnos);
+
+    // Citas agendadas en ese día
+    const citas = await prisma.cita.findMany({
+      where: {
+        hospital_id: Number(hospital_id),
+        fecha_hora: {
+          gte: inicioDia,
+          lte: finDia,
+        },
+      },
+      select: { fecha_hora: true },
+    });
+
+    const citasOcupadas = citas.map((cita) =>
+      cita.fecha_hora.toISOString().substring(11, 16)
+    );
+
+    const disponibles = [];
+
+    for (const turno of turnos) {
+      let inicio = new Date(turno.hora_inicio);
+      let fin = new Date(turno.hora_fin);
+
+      // 🔹 Aseguramos que el inicio no sea antes del día actual
+      if (inicio < inicioDia) inicio = new Date(inicioDia);
+      // 🔹 Aseguramos que el fin no sea después del día actual
+      if (fin > finDia) fin = new Date(finDia);
+
+      while (inicio < fin) {
+        const hora = inicio.toISOString().substring(11, 16); // "HH:mm"
+        if (!citasOcupadas.includes(hora)) {
+          disponibles.push(hora);
+        }
+        inicio = new Date(inicio.getTime() + 20 * 60000); // +20 minutos
+      }
+    }
+
+    const horarios = [...new Set(disponibles)].sort();
+    return res.status(200).json({ success: true, horarios });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error obteniendo turnos disponibles",
+      error,
+    });
+  }
+};
+
+
 module.exports = {
   agregarTurnoMedico,
   turnosHospital,
+  turnos_disponibles
 };
