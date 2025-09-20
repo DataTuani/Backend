@@ -266,6 +266,8 @@ const obtenerCitasPorHospital = async (req, res) => {
     const citas = await prisma.cita.findMany({
       where: { hospital_id: parseInt(hospital_id) },
       select: {
+        id: true,
+        roomId: true,
         motivo_consulta: true,
         imagen_url: true,
         fecha_hora: true,
@@ -326,12 +328,46 @@ const obtenerCitasPorPaciente = async (req, res) => {
   try {
     const citas = await prisma.cita.findMany({
       where: { paciente_id },
-      include: {
-        paciente: { include: { usuario: true } },
-        medico: { include: { usuario: true } },
-        hospital: true,
-        estado: true,
-        expediente: true,
+       select: {
+        id: true,
+        numero_turno: true,
+        roomId: true,
+        motivo_consulta: true,
+        imagen_url: true,
+        fecha_hora: true,
+        paciente: {
+          select: {
+            usuario: {
+              select: {
+                primer_nombre: true,
+                segundo_nombre: true,
+                primer_apellido: true,
+                segundo_apellido: true,
+                cedula: true,
+              },
+            },
+          },
+        },
+        medico: {
+          select: {
+            usuario: {
+              select: {
+                primer_nombre: true,
+                segundo_nombre: true,
+                primer_apellido: true,
+                segundo_apellido: true,
+                cedula: true,
+              },
+            },
+          },
+        },
+        hospital: {
+          select: {
+            nombre: true,
+          }
+        },
+        estado: { select: { nombre: true } },
+        expediente: { select: { folio: true } },
       },
     });
 
@@ -361,12 +397,46 @@ const obtenerCitasPorDoctor = async (req, res) => {
   try {
     const citas = await prisma.cita.findMany({
       where: { medico_id: personal_id },
-      include: {
-        paciente: { include: { usuario: true } },
-        medico: { include: { usuario: true } },
-        hospital: true,
-        estado: true,
-        expediente: true,
+      select: {
+        id: true,
+        numero_turno: true,
+        roomId: true,
+        motivo_consulta: true,
+        imagen_url: true,
+        fecha_hora: true,
+        paciente: {
+          select: {
+            usuario: {
+              select: {
+                primer_nombre: true,
+                segundo_nombre: true,
+                primer_apellido: true,
+                segundo_apellido: true,
+                cedula: true,
+              },
+            },
+          },
+        },
+        medico: {
+          select: {
+            usuario: {
+              select: {
+                primer_nombre: true,
+                segundo_nombre: true,
+                primer_apellido: true,
+                segundo_apellido: true,
+                cedula: true,
+              },
+            },
+          },
+        },
+        hospital: {
+          select: {
+            nombre: true,
+          }
+        },
+        estado: { select: { nombre: true } },
+        expediente: { select: { folio: true } },
       },
     });
 
@@ -396,10 +466,12 @@ const obtenerCitaPorId = async (req, res) => {
   try {
     const cita = await prisma.cita.findUnique({
       where: { id: parseInt(cita_id) },
-      select: {
+       select: {
+        id: true,
+        numero_turno: true,
+        roomId: true,
         motivo_consulta: true,
         imagen_url: true,
-
         fecha_hora: true,
         paciente: {
           select: {
@@ -427,8 +499,12 @@ const obtenerCitaPorId = async (req, res) => {
             },
           },
         },
+        hospital: {
+          select: {
+            nombre: true,
+          }
+        },
         estado: { select: { nombre: true } },
-        numero_turno: true,
         expediente: { select: { folio: true } },
       },
     });
