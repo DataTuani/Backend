@@ -2,12 +2,19 @@ require("dotenv").config();
 require("./jobs/citasCron");
 const express = require("express");
 const path = require("path");
-
+const cors = require('cors');
 const http = require("http");
 const { Server } = require("socket.io");
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+
+
+const allowedOrigins = [
+  "http://localhost:5173",  
+];
+
+app.use(cors(allowedOrigins));
 
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
@@ -22,6 +29,9 @@ const swaggerSpec = swaggerJsdoc({
   },
   apis: ["./routes/*.js"],
 });
+
+
+
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
