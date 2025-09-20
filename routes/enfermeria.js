@@ -85,6 +85,36 @@ const upload = require("../middlewares/upload");
  *         description: Token inválido
  */
 
+
+/**
+ * @openapi
+ * /api/enfermeria//turnos-disponibles:
+ *   get:
+ *     summary: Obtener turnos disponibles por hospital y día
+ *     tags:
+ *       - Enfermeria
+ *     parameters:
+ *       - in: header
+ *         name: x-token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Token JWT de autenticación
+ *       - in: query
+ *         name: hospital_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del hospital
+ *     responses:
+ *       200:
+ *         description: Lista de turnos médicos del hospital por dia
+ *       400:
+ *         description: Hospital inválido
+ *       401:
+ *         description: Token inválido
+ */
+
 // REGISTRAR NUEVO TURNO MEDICO
 router.post(
   "/turno",

@@ -96,21 +96,15 @@ const turnos_disponibles = async (req, res) => {
     const finDia = new Date(hoy);
     finDia.setHours(23, 59, 59, 999);
 
-    console.log("inicioDia:", inicioDia);
-    console.log("finDia:", finDia);
-
-    // Turnos disponibles que cruzan el día consultado
     const turnos = await prisma.turno.findMany({
       where: {
         hospital_id: Number(hospital_id),
         hora_inicio: { lte: finDia },
-        hora_fin: { gte: inicioDia }, // 👈 ojo: así traes turnos que abarcan el día
+        hora_fin: { gte: inicioDia },
       },
     });
 
-    console.log("turnos:", turnos);
-
-    // Citas agendadas en ese día
+   
     const citas = await prisma.cita.findMany({
       where: {
         hospital_id: Number(hospital_id),
@@ -132,17 +126,15 @@ const turnos_disponibles = async (req, res) => {
       let inicio = new Date(turno.hora_inicio);
       let fin = new Date(turno.hora_fin);
 
-      // 🔹 Aseguramos que el inicio no sea antes del día actual
       if (inicio < inicioDia) inicio = new Date(inicioDia);
-      // 🔹 Aseguramos que el fin no sea después del día actual
       if (fin > finDia) fin = new Date(finDia);
 
       while (inicio < fin) {
-        const hora = inicio.toISOString().substring(11, 16); // "HH:mm"
+        const hora = inicio.toISOString().substring(11, 16); 
         if (!citasOcupadas.includes(hora)) {
           disponibles.push(hora);
         }
-        inicio = new Date(inicio.getTime() + 20 * 60000); // +20 minutos
+        inicio = new Date(inicio.getTime() + 20 * 60000); 
       }
     }
 
