@@ -88,7 +88,7 @@ const upload = require("../middlewares/upload");
 
 /**
  * @openapi
- * /api/enfermeria//turnos-disponibles:
+ * /api/enfermeria/turnos-disponibles:
  *   get:
  *     summary: Obtener turnos disponibles por hospital y día
  *     tags:
