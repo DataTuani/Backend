@@ -113,3 +113,9 @@ Este proyecto es una **API RESTful** desarrollada con **Node.js**, **Express** y
 
 Este backend está diseñado siguiendo buenas prácticas de **REST API**, con middlewares de validación y autenticación. Los controladores se encuentran en la carpeta `controllers/`, las rutas en `routes/` y la configuración principal en `index.js`.
 
+
+
+## Author
+
+- [@Yasser Darce](https://github.com/D-Maysena)
+
