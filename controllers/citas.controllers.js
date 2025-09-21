@@ -268,6 +268,8 @@ const obtenerCitasPorHospital = async (req, res) => {
       select: {
         id: true,
         roomId: true,
+        tipo: {select: {tipo: true}},
+
         motivo_consulta: true,
         imagen_url: true,
         fecha_hora: true,
@@ -331,6 +333,7 @@ const obtenerCitasPorPaciente = async (req, res) => {
        select: {
         id: true,
         numero_turno: true,
+        tipo: {select: {tipo: true}},
         roomId: true,
         motivo_consulta: true,
         imagen_url: true,
@@ -401,6 +404,8 @@ const obtenerCitasPorDoctor = async (req, res) => {
         id: true,
         numero_turno: true,
         roomId: true,
+        tipo: {select: {tipo: true}},
+
         motivo_consulta: true,
         imagen_url: true,
         fecha_hora: true,
@@ -470,6 +475,8 @@ const obtenerCitaPorId = async (req, res) => {
         id: true,
         numero_turno: true,
         roomId: true,
+        tipo: {select: {tipo: true}},
+
         motivo_consulta: true,
         imagen_url: true,
         fecha_hora: true,
