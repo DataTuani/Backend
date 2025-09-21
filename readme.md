@@ -1,5 +1,5 @@
-````markdown
-# 🏥 Backend de Gestión de Citas Médicas
+
+# 🏥 Backend de SINAES 
 
 Este proyecto es una **API RESTful** desarrollada con **Node.js**, **Express** y **Prisma ORM**, que permite gestionar citas médicas, usuarios (pacientes, médicos, administradores) y disponibilidad de turnos. La base de datos está alojada en **Supabase (PostgreSQL)**.
 
@@ -34,7 +34,7 @@ Este proyecto es una **API RESTful** desarrollada con **Node.js**, **Express** y
    ```bash
    git clone https://github.com/tuusuario/tu-repositorio.git
    cd tu-repositorio
-````
+   ````
 
 2. Instalar dependencias:
 
@@ -79,7 +79,7 @@ Este proyecto es una **API RESTful** desarrollada con **Node.js**, **Express** y
    El servidor estará disponible en:
 
    ```
-   http://localhost:3000
+   http://localhost:8080
    ```
 
 2. Endpoints principales:
@@ -111,25 +111,5 @@ Este proyecto es una **API RESTful** desarrollada con **Node.js**, **Express** y
 
 ## 📖 Documentación
 
-Este backend está diseñado siguiendo buenas prácticas de **REST API**, con middlewares de validación y autenticación. Los controladores se encuentran en la carpeta `controllers/`, las rutas en `routes/` y la configuración principal en `app.js`.
+Este backend está diseñado siguiendo buenas prácticas de **REST API**, con middlewares de validación y autenticación. Los controladores se encuentran en la carpeta `controllers/`, las rutas en `routes/` y la configuración principal en `index.js`.
 
----
-
-## 🤝 Contribución
-
-1. Haz un fork del proyecto.
-2. Crea una nueva rama: `git checkout -b feature/nueva-funcionalidad`.
-3. Realiza tus cambios y haz commit: `git commit -m "Agrego nueva funcionalidad"`.
-4. Haz push a tu rama: `git push origin feature/nueva-funcionalidad`.
-5. Abre un **Pull Request**.
-
----
-
-## 📄 Licencia
-
-Este proyecto está bajo la licencia **MIT**. Puedes usarlo y modificarlo libremente.
-
----
-
-```
-```
