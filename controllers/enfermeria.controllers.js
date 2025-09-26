@@ -91,8 +91,10 @@ const turnos_disponibles = async (req, res) => {
 
   try {
     const hoy = new Date();
+
     const inicioDia = new Date(hoy);
     inicioDia.setHours(0, 0, 0, 0);
+
     const finDia = new Date(hoy);
     finDia.setHours(23, 59, 59, 999);
 
@@ -104,20 +106,22 @@ const turnos_disponibles = async (req, res) => {
       },
     });
 
-   
+
     const citas = await prisma.cita.findMany({
       where: {
         hospital_id: Number(hospital_id),
-        fecha_hora: {
-          gte: inicioDia,
-          lte: finDia,
-        },
+        fecha_hora: { gte: inicioDia, lte: finDia },
       },
       select: { fecha_hora: true },
     });
 
     const citasOcupadas = citas.map((cita) =>
-      cita.fecha_hora.toISOString().substring(11, 16)
+      cita.fecha_hora.toLocaleTimeString("es-ES", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: "America/Managua",
+      })
     );
 
     const disponibles = [];
@@ -129,16 +133,26 @@ const turnos_disponibles = async (req, res) => {
       if (inicio < inicioDia) inicio = new Date(inicioDia);
       if (fin > finDia) fin = new Date(finDia);
 
-      while (inicio < fin) {
-        const hora = inicio.toISOString().substring(11, 16); 
+      while (inicio <= fin) {
+        const hora = inicio.toLocaleTimeString("es-ES", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+          timeZone: "America/Managua",
+        });
+
         if (!citasOcupadas.includes(hora)) {
           disponibles.push(hora);
         }
-        inicio = new Date(inicio.getTime() + 20 * 60000); 
+
+        inicio = new Date(inicio.getTime() + 20 * 60000);
       }
     }
 
-    const horarios = [...new Set(disponibles)].sort();
+    const horarios = [...new Set(disponibles)].sort(
+      (a, b) => a.localeCompare(b)
+    );
+
     return res.status(200).json({ success: true, horarios });
   } catch (error) {
     console.error(error);
@@ -154,5 +168,5 @@ const turnos_disponibles = async (req, res) => {
 module.exports = {
   agregarTurnoMedico,
   turnosHospital,
-  turnos_disponibles
+  turnos_disponibles,
 };
