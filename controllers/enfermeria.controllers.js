@@ -92,31 +92,32 @@ const turnos_disponibles = async (req, res) => {
   try {
     const hoy = new Date();
 
-    const inicioDia = new Date(hoy);
-    inicioDia.setHours(0, 0, 0, 0);
+    // Filtro UTC para la BD
+    const utcOffset = -6; // Nicaragua UTC-6
+    const hoyManagua = new Date(hoy.getTime() + utcOffset * 60 * 60 * 1000);
 
-    const finDia = new Date(hoy);
-    finDia.setHours(23, 59, 59, 999);
+    const inicioDiaUTC = new Date(hoyManagua);
+    inicioDiaUTC.setHours(0, 0, 0, 0);
 
-
-    console.log("inicioDia", inicioDia);
-    console.log("finDia", finDia);
-    
-    
+    const finDiaUTC = new Date(hoyManagua);
+    finDiaUTC.setHours(23, 59, 59, 999);
+    console.log("inicioDiaUTC", inicioDiaUTC);
+    console.log("finDiaUTC", finDiaUTC);
 
     const turnos = await prisma.turno.findMany({
       where: {
         hospital_id: Number(hospital_id),
-        hora_inicio: { lte: finDia },
-        hora_fin: { gte: inicioDia },
+        hora_inicio: { lte: finDiaUTC },
+        hora_fin: { gte: inicioDiaUTC },
       },
     });
 
+    console.log(turnos);
 
     const citas = await prisma.cita.findMany({
       where: {
         hospital_id: Number(hospital_id),
-        fecha_hora: { gte: inicioDia, lte: finDia },
+        fecha_hora: { gte: inicioDiaUTC, lte: finDiaUTC },
       },
       select: { fecha_hora: true },
     });
@@ -136,27 +137,29 @@ const turnos_disponibles = async (req, res) => {
       let inicio = new Date(turno.hora_inicio);
       let fin = new Date(turno.hora_fin);
 
-      if (inicio < inicioDia) inicio = new Date(inicioDia);
-      if (fin > finDia) fin = new Date(finDia);
+      // Recortar al día en UTC para la generación de bloques
+      if (inicio < inicioDiaUTC) inicio = new Date(inicioDiaUTC);
+      if (fin > finDiaUTC) fin = new Date(finDiaUTC);
 
       while (inicio <= fin) {
-        const hora = inicio.toLocaleTimeString("es-ES", {
+        // Solo al mostrar convertimos a hora local
+        const horaLocal = inicio.toLocaleTimeString("es-ES", {
           hour: "2-digit",
           minute: "2-digit",
           hour12: false,
           timeZone: "America/Managua",
         });
 
-        if (!citasOcupadas.includes(hora)) {
-          disponibles.push(hora);
+        if (!citasOcupadas.includes(horaLocal)) {
+          disponibles.push(horaLocal);
         }
 
-        inicio = new Date(inicio.getTime() + 20 * 60000);
+        inicio = new Date(inicio.getTime() + 20 * 60000); // 20 min
       }
     }
 
-    const horarios = [...new Set(disponibles)].sort(
-      (a, b) => a.localeCompare(b)
+    const horarios = [...new Set(disponibles)].sort((a, b) =>
+      a.localeCompare(b)
     );
 
     return res.status(200).json({ success: true, horarios });
@@ -169,7 +172,6 @@ const turnos_disponibles = async (req, res) => {
     });
   }
 };
-
 
 module.exports = {
   agregarTurnoMedico,
