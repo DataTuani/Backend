@@ -38,6 +38,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
+app.use("/static/erd", express.static(path.join(__dirname, "prisma/ERD")));
 
 // Rutas
 app.use("/api/auth", require("./routes/auth"));
