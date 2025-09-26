@@ -297,6 +297,8 @@ const obtenerCitasPorHospital = async (req, res) => {
                 cedula: true,
               },
             },
+                especialidad: {select: {nombre: true}}
+
           },
         },
         estado: { select: { nombre: true } },
@@ -362,6 +364,8 @@ const obtenerCitasPorPaciente = async (req, res) => {
                 cedula: true,
               },
             },
+                especialidad: {select: {nombre: true}}
+
           },
         },
         hospital: {
@@ -433,6 +437,8 @@ const obtenerCitasPorDoctor = async (req, res) => {
                 cedula: true,
               },
             },
+                especialidad: {select: {nombre: true}}
+
           },
         },
         hospital: {
@@ -504,6 +510,8 @@ const obtenerCitaPorId = async (req, res) => {
                 cedula: true,
               },
             },
+                especialidad: {select: {nombre: true}}
+
           },
         },
         hospital: {
@@ -577,6 +585,7 @@ const obtenerConsultaPorId = async (req, res) => {
                     telefono: true,
                   },
                 },
+                especialidad: {select: {nombre: true}}
               },
             },
             paciente: {
