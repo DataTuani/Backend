@@ -98,6 +98,12 @@ const turnos_disponibles = async (req, res) => {
     const finDia = new Date(hoy);
     finDia.setHours(23, 59, 59, 999);
 
+
+    console.log("inicioDia", inicioDia);
+    console.log("finDia", finDia);
+    
+    
+
     const turnos = await prisma.turno.findMany({
       where: {
         hospital_id: Number(hospital_id),
