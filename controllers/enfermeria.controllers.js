@@ -85,15 +85,14 @@ const turnosHospital = async (req, res) => {
     res.status(500).json({ ok: false, msg: "Error interno del servidor" });
   }
 };
-
 const turnos_disponibles = async (req, res) => {
   const { hospital_id } = req.query;
 
   try {
     const hoy = new Date();
 
-    // Filtro UTC para la BD
-    const utcOffset = -6; // Nicaragua UTC-6
+    // Hora de Nicaragua (UTC-6)
+    const utcOffset = -6;
     const hoyManagua = new Date(hoy.getTime() + utcOffset * 60 * 60 * 1000);
 
     const inicioDiaUTC = new Date(hoyManagua);
@@ -101,8 +100,6 @@ const turnos_disponibles = async (req, res) => {
 
     const finDiaUTC = new Date(hoyManagua);
     finDiaUTC.setHours(23, 59, 59, 999);
-    console.log("inicioDiaUTC", inicioDiaUTC);
-    console.log("finDiaUTC", finDiaUTC);
 
     const turnos = await prisma.turno.findMany({
       where: {
@@ -112,8 +109,6 @@ const turnos_disponibles = async (req, res) => {
       },
     });
 
-    console.log(turnos);
-
     const citas = await prisma.cita.findMany({
       where: {
         hospital_id: Number(hospital_id),
@@ -122,45 +117,47 @@ const turnos_disponibles = async (req, res) => {
       select: { fecha_hora: true },
     });
 
-    const citasOcupadas = citas.map((cita) =>
-      cita.fecha_hora.toLocaleTimeString("es-ES", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-        timeZone: "America/Managua",
+    // Convertimos las citas a minutos desde medianoche para comparación
+    const citasOcupadas = new Set(
+      citas.map((cita) => {
+        const fecha = new Date(cita.fecha_hora);
+        fecha.setHours(fecha.getHours() - utcOffset); // Ajustar a hora local
+        return fecha.getHours() * 60 + fecha.getMinutes();
       })
     );
 
-    const disponibles = [];
+    const disponibles = new Set();
 
     for (const turno of turnos) {
       let inicio = new Date(turno.hora_inicio);
       let fin = new Date(turno.hora_fin);
 
-      // Recortar al día en UTC para la generación de bloques
+      // Ajuste al día actual
       if (inicio < inicioDiaUTC) inicio = new Date(inicioDiaUTC);
       if (fin > finDiaUTC) fin = new Date(finDiaUTC);
 
       while (inicio <= fin) {
-        // Solo al mostrar convertimos a hora local
-        const horaLocal = inicio.toLocaleTimeString("es-ES", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-          timeZone: "America/Managua",
-        });
-
-        if (!citasOcupadas.includes(horaLocal)) {
-          disponibles.push(horaLocal);
+        const minutos = inicio.getHours() * 60 + inicio.getMinutes();
+        if (!citasOcupadas.has(minutos)) {
+          disponibles.add(minutos);
         }
-
-        inicio = new Date(inicio.getTime() + 20 * 60000); // 20 min
+        inicio = new Date(inicio.getTime() + 20 * 60000);
       }
     }
 
-    const horarios = [...new Set(disponibles)].sort((a, b) =>
-      a.localeCompare(b)
-    );
+    // Ordenar y convertir a formato AM/PM limpio
+    const horarios = Array.from(disponibles)
+      .sort((a, b) => a - b)
+      .map((minutos) => {
+        let h = Math.floor(minutos / 60);
+        let m = minutos % 60;
+        const ampm = h >= 12 ? "PM" : "AM";
+        if (h === 0) h = 12;
+        if (h > 12) h -= 12;
+        return `${h.toString().padStart(2, "0")}:${m
+          .toString()
+          .padStart(2, "0")} ${ampm}`;
+      });
 
     return res.status(200).json({ success: true, horarios });
   } catch (error) {
@@ -172,6 +169,7 @@ const turnos_disponibles = async (req, res) => {
     });
   }
 };
+
 
 module.exports = {
   agregarTurnoMedico,
