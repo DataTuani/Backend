@@ -120,6 +120,13 @@ const { validarJWT } = require("../middlewares/validarjwt");
  */
 
 router.get(
+  "/todos",
+  validarJWT,
+
+  expedienteController.obtenerTodosExpedientes
+);
+
+router.get(
   "/:user_id",
   validarJWT,
   validate([
@@ -165,10 +172,10 @@ router.put(
       )
       .custom((arr) => arr.every((item) => typeof item === "string"))
       .withMessage("Cada enfermedad debe ser texto"),
-      body("observaciones")
+    body("observaciones")
       .optional()
       .isString()
-      .withMessage("Observaciones inválidas")
+      .withMessage("Observaciones inválidas"),
   ]),
 
   expedienteController.editarExpediente

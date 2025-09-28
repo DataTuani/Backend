@@ -207,7 +207,124 @@ const editarExpediente = async (req, res) => {
   }
 };
 
+
+
+
+
+
+
+
+
+const obtenerTodosExpedientes = async (req, res) => {
+  try {
+    const expedientes = await prisma.expediente.findMany({
+      select: {
+        id: true,
+        paciente_id: true,
+        folio: true,
+        fecha_apertura: true,
+        observaciones: true,
+        hospital: {
+          select: {
+            nombre: true,
+            direccion: true,
+            email: true,
+            telefono: true,
+          },
+        },
+        paciente: {
+          select: {
+            id: true,
+            grupo_sanguineo: true,
+            usuario: {
+              select: {
+                primer_nombre: true,
+                segundo_nombre: true,
+                primer_apellido: true,
+                segundo_apellido: true,
+                cedula: true,
+                telefono: true,
+                correo: true,
+                fecha_nacimiento: true,
+                genero: true,
+                direccion: true,
+              },
+            },
+            alergias: {
+              select: { descripcion: true },
+            },
+            enfermedades: {
+              select: { descripcion: true },
+            },
+            citas: {
+              select: {
+                fecha_hora: true,
+                motivo_consulta: true,
+                estado: { select: { nombre: true } },
+                tipo: { select: { tipo: true } },
+                consulta: {
+                  select: {
+                    diagnostico: true,
+                    sintomas: true,
+                    tratamiento: true,
+                    receta: {
+                      select: {
+                        nombre: true,
+                        dosis: true,
+                        duracion: true,
+                        frecuencia: true,
+                        instrucciones: true,
+                      },
+                    },
+                    ordenes: {
+                      select: {
+                        tipo_examen: true,
+                        instrucciones: true,
+                        estado: { select: { nombre: true } },
+                      },
+                    },
+                  },
+                },
+                medico: {
+                  select: {
+                    usuario: {
+                      select: {
+                        primer_nombre: true,
+                        segundo_nombre: true,
+                        primer_apellido: true,
+                        segundo_apellido: true,
+                        cedula: true,
+                        fecha_nacimiento: true,
+                        genero: true,
+                      },
+                    },
+                    especialidad: { select: { nombre: true } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      total: expedientes.length,
+      Expedientes: expedientes,
+    });
+  } catch (error) {
+    console.error("❌ Error al obtener expedientes:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Error interno del servidor",
+    });
+  }
+};
+
+
 module.exports = {
   obtenerExpedientePorUser,
   editarExpediente,
+  obtenerTodosExpedientes,
 };
