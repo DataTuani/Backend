@@ -9,6 +9,7 @@ const obtenerExpedientePorUser = async (req, res) => {
     const expedienteUser = await prisma.expediente.findUnique({
       where: { paciente_id: Number(user_id) },
       select: {
+        paciente_id: true,
         folio: true,
         fecha_apertura: true,
         observaciones: true,
@@ -22,6 +23,7 @@ const obtenerExpedientePorUser = async (req, res) => {
         },
         paciente: {
           select: {
+            id: true,
             usuario: {
               select: {
                 primer_nombre: true,
@@ -104,6 +106,12 @@ const obtenerExpedientePorUser = async (req, res) => {
         },
       },
     });
+
+    if (!expedienteUser) {
+      return res
+        .status(404)
+        .json({ error: "Expediente no encontrado para este usuario" });
+    }
 
     return res.status(200).json({
       success: true,
@@ -201,5 +209,5 @@ const editarExpediente = async (req, res) => {
 
 module.exports = {
   obtenerExpedientePorUser,
-  editarExpediente
+  editarExpediente,
 };
