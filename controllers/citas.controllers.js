@@ -417,6 +417,7 @@ const obtenerCitasPorDoctor = async (req, res) => {
           select: {
             usuario: {
               select: {
+                id: true,
                 primer_nombre: true,
                 segundo_nombre: true,
                 primer_apellido: true,
