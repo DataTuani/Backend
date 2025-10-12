@@ -72,6 +72,7 @@ const obtenerOrdenesLab = async (req, res) => {
   try {
     const ordenes = await prisma.ordenLaboratorio.findMany({
       select: {
+        id: true,
         instrucciones: true,
         tipo_examen: true,
         created_at: true,
