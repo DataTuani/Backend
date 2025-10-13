@@ -97,6 +97,17 @@ router.get(
   userController.getUserById
 );
 
+router.get(
+  "/medicamentos",
+  validarJWT,
+
+  validate([
+    query("user_id").isInt().withMessage("Usuario inválido"),
+  ]),
+  userController.medicamentosPorUsuario
+);
+
+
 router.put(
   "/:usuario_id/actualizar",
   validarJWT,

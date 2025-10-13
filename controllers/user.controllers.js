@@ -2,11 +2,12 @@ const { PrismaClient } = require("@prisma/client");
 const { supabase } = require("../utils/supabase");
 const prisma = new PrismaClient();
 const path = require("path");
+
 const getUserById = async (req, res) => {
   const { user_id, rol_id } = req.query;
 
   if (!user_id || !rol_id) {
-    return res.status(400).json({success: false, error: "Faltan parámetros" });
+    return res.status(400).json({ success: false, error: "Faltan parámetros" });
   }
 
   try {
@@ -33,7 +34,9 @@ const getUserById = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({success: false, error: "Usuario no encontrado" });
+      return res
+        .status(404)
+        .json({ success: false, error: "Usuario no encontrado" });
     }
 
     // Excluir la contraseña
@@ -42,7 +45,9 @@ const getUserById = async (req, res) => {
     return res.status(200).json({ user: userData });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({success: false, error: "Error al obtener usuario" });
+    return res
+      .status(500)
+      .json({ success: false, error: "Error al obtener usuario" });
   }
 };
 
@@ -55,7 +60,9 @@ const actualizarUsuario = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({success: false, error: "Usuario no encontrado" });
+      return res
+        .status(404)
+        .json({ success: false, error: "Usuario no encontrado" });
     }
 
     let updateData = { ...req.body };
@@ -90,13 +97,11 @@ const actualizarUsuario = async (req, res) => {
       data: updateData,
     });
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Usuario Actualizado",
-        user: updateUser,
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Usuario Actualizado",
+      user: updateUser,
+    });
   } catch (error) {
     console.error(error);
     return res
@@ -105,7 +110,42 @@ const actualizarUsuario = async (req, res) => {
   }
 };
 
+const medicamentosPorUsuario = async (req, res) => {
+  const { user_id } = req.params;
+
+  try {
+    const medicamentos = await prisma.medicamentoRecetado.findMany({
+      where: {
+        consulta: {
+          expediente: {
+            paciente: {
+              usuario_id: user_id,
+            },
+          },
+        },
+      },
+    });
+
+    if (!medicamentos) {
+      return res.status(400).json({
+        success: false,
+        message: "No hay medicamentos asignados",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      medicamentos: medicamentos,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, error: "Error al obtener medicamentos" });
+  }
+};
+
 module.exports = {
   actualizarUsuario,
   getUserById,
+  medicamentosPorUsuario
 };
