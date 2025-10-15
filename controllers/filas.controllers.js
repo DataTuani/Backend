@@ -59,11 +59,37 @@ const prisma = new PrismaClient();
 // };
 
 const estadoFilaPaciente = async (req, res) => {
-  const { hospital_id, paciente_id } = req.params;
-  const hospitalIdNum = parseInt(hospital_id, 10);
+  const { paciente_id } = req.params;
   const pacienteIdNum = parseInt(paciente_id, 10);
 
   try {
+    // 🔹 Buscar la última cita registrada del paciente
+    const ultimaCita = await prisma.cita.findFirst({
+      where: { paciente_id: pacienteIdNum },
+      orderBy: { fecha_hora: "desc" },
+      select: {
+        id: true,
+        hospital_id: true,
+        fecha_hora: true,
+        hospital: {
+          select: {
+            id: true,
+            nombre: true,
+           
+          },
+        },
+      },
+    });
+
+    if (!ultimaCita) {
+      return res.status(404).json({
+        success: false,
+        message: "El paciente no tiene citas registradas.",
+      });
+    }
+
+    const hospitalIdNum = ultimaCita.hospital_id;
+
     // 🔹 Rango de hoy (00:00:00 a 23:59:59)
     const inicioDia = new Date();
     inicioDia.setHours(0, 0, 0, 0);
@@ -120,7 +146,9 @@ const estadoFilaPaciente = async (req, res) => {
     if (!turnoPaciente) {
       return res.status(404).json({
         success: false,
-        message: "El paciente no tiene turno asignado hoy en este hospital.",
+        message:
+          "El paciente no tiene turno asignado hoy en su último hospital.",
+        hospital: ultimaCita.hospital,
       });
     }
 
@@ -132,20 +160,16 @@ const estadoFilaPaciente = async (req, res) => {
     // 🔹 Turno actual (primero de la lista)
     const turnoActual = turnosHoy.length > 0 ? turnosHoy[0] : null;
 
-    // 🔹 Datos del hospital y médico del paciente
-    const hospital = turnoPaciente.hospital;
-    const medico = turnoPaciente.medico;
-
     return res.status(200).json({
       success: true,
       data: {
         posicion,
         personasDelante,
         totalEnFila: turnosHoy.length,
-        // turnoActual,
-        // turnoPaciente,
-        hospital,
-        medico,
+        turnoActual,
+        turnoPaciente,
+        hospital: turnoPaciente.hospital,
+        medico: turnoPaciente.medico,
       },
     });
   } catch (error) {

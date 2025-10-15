@@ -86,12 +86,11 @@ const { validarJWT } = require("../middlewares/validarjwt");
 
 // 📌 Consultar estado de la fila para un paciente
 router.get(
-  "/:paciente_id/:hospital_id",
+  "/:paciente_id/",
   validarJWT,
 
   validate([
     param("paciente_id").isInt().withMessage("Paciente inválido"),
-    param("hospital_id").isInt().withMessage("Hospital inválido"),
   ]),
   filasController.estadoFilaPaciente
 );
