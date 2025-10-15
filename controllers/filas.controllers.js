@@ -64,36 +64,47 @@ const estadoFilaPaciente = async (req, res) => {
   const pacienteIdNum = parseInt(paciente_id, 10);
 
   try {
-    // Rango de hoy (00:00:00 a 23:59:59)
+    // 🔹 Rango de hoy (00:00:00 a 23:59:59)
     const inicioDia = new Date();
     inicioDia.setHours(0, 0, 0, 0);
 
     const finDia = new Date();
     finDia.setHours(23, 59, 59, 999);
 
-    // 🔹 Turno actual del hospital
-    const turnoActual = await prisma.cita.findFirst({
+    // 🔹 Obtener todos los turnos en espera hoy (ordenados por número)
+    const turnosHoy = await prisma.cita.findMany({
       where: {
         hospital_id: hospitalIdNum,
-        estado_id: 1, // en espera
+        estado_id: 1, // 1 = en espera
         fecha_hora: { gte: inicioDia, lte: finDia },
       },
       orderBy: { numero_turno: "asc" },
       select: {
+        id: true,
         numero_turno: true,
-        estado: { select: { nombre: true } },
-        motivo_consulta: true,
-        fecha_hora: true,
-        tipo: { select: { tipo: true } },
-        paciente: {
+        paciente_id: true,
+        hospital: {
           select: {
+            id: true,
+            nombre: true,
+           
+          },
+        },
+        medico: {
+          select: {
+            id: true,
             usuario: {
               select: {
                 primer_nombre: true,
                 segundo_nombre: true,
                 primer_apellido: true,
                 segundo_apellido: true,
-                cedula: true,
+                correo: true,
+              },
+            },
+            especialidad: {
+              select: {
+                nombre: true,
               },
             },
           },
@@ -101,55 +112,51 @@ const estadoFilaPaciente = async (req, res) => {
       },
     });
 
-    // 🔹 Turno del paciente
-    const turnoPaciente = await prisma.cita.findFirst({
-      where: {
-        hospital_id: hospitalIdNum,
-        paciente_id: pacienteIdNum,
-        fecha_hora: { gte: inicioDia, lte: finDia },
-      },
-      select: {
-        numero_turno: true,
-        estado: { select: { nombre: true } },
-        motivo_consulta: true,
-        fecha_hora: true,
-        tipo: { select: { tipo: true } },
-        paciente: {
-          select: {
-            usuario: {
-              select: {
-                primer_nombre: true,
-                segundo_nombre: true,
-                primer_apellido: true,
-                segundo_apellido: true,
-                cedula: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    // 🔹 Buscar el turno del paciente
+    const turnoPaciente = turnosHoy.find(
+      (t) => t.paciente_id === pacienteIdNum
+    );
 
     if (!turnoPaciente) {
-      return res.json({
+      return res.status(404).json({
         success: false,
-        error: "El paciente no tiene turno asignado hoy en este hospital",
+        message: "El paciente no tiene turno asignado hoy en este hospital.",
       });
     }
 
+    // 🔹 Calcular posición y cantidad de personas delante
+    const posicion =
+      turnosHoy.findIndex((t) => t.paciente_id === pacienteIdNum) + 1;
+    const personasDelante = posicion - 1;
+
+    // 🔹 Turno actual (primero de la lista)
+    const turnoActual = turnosHoy.length > 0 ? turnosHoy[0] : null;
+
+    // 🔹 Datos del hospital y médico del paciente
+    const hospital = turnoPaciente.hospital;
+    const medico = turnoPaciente.medico;
+
     return res.status(200).json({
       success: true,
-      turnoActual,
-      turnoPaciente,
+      data: {
+        posicion,
+        personasDelante,
+        totalEnFila: turnosHoy.length,
+        // turnoActual,
+        // turnoPaciente,
+        hospital,
+        medico,
+      },
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error en estadoFilaPaciente:", error);
     return res.status(500).json({
       success: false,
-      error: "Error al consultar fila del paciente",
+      error: "Error al consultar la fila del paciente.",
     });
   }
 };
+
 
 const estadoFilaHospital = async (req, res) => {
   const { hospital_id } = req.query;
