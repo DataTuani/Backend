@@ -87,7 +87,7 @@ export const validarOTP = async (req, res) => {
       usuarioPadreNombre: otp.usuario.primer_nombre,
       usuarioPadreApellido: otp.usuario.primer_apellido,
       usuarioPadreCorreo: otp.usuario.correo,
-      tokenPadre, // 👈 aquí va el JWT que puede usar el hijo
+      tokenPadre,
     });
   } catch (error) {
     console.error("Error en validarOTP:", error);
