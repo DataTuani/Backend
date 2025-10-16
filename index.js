@@ -32,7 +32,6 @@ const swaggerSpec = swaggerJsdoc({
 
 
 
-
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use(express.json());
@@ -49,6 +48,7 @@ app.use("/api/expediente", require("./routes/expediente"));
 app.use("/api/ordenesLab", require("./routes/ordenesLab"));
 app.use("/api/hospitales", require("./routes/hospitales"));
 app.use("/api/enfermeria", require("./routes/enfermeria"));
+app.use("/api/controlParental", require("./routes/controlParental"));
 
 const server = http.createServer(app);
 

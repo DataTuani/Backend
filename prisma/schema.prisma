@@ -33,6 +33,10 @@ model Usuario {
   Paciente         Paciente?
   Personal         Personal?
   rol              Rol            @relation(fields: [rol_id], references: [id])
+  ControlParentalOTPs ControlParentalOTP[]
+  enlacesComoPadre    EnlaceParental[] @relation("PadreHijo")
+  enlacesComoHijo     EnlaceParental[] @relation("HijoPadre")
+
 
   @@map("usuario")
 }
@@ -268,6 +272,37 @@ model FilaVirtual {
 
   @@map("fila_virtual")
 }
+
+
+
+
+model ControlParentalOTP {
+  id           Int       @id @default(autoincrement())
+  codigo       String    @unique
+  usuario_id   Int
+  usado        Boolean   @default(false)
+  expiracion   DateTime
+  creado_en    DateTime  @default(now())
+
+  usuario      Usuario   @relation(fields: [usuario_id], references: [id])
+
+  @@map("control_parental_otp")
+}
+
+
+model EnlaceParental {
+  id           Int      @id @default(autoincrement())
+  padre_id     Int
+  hijo_id      Int
+  creado_en    DateTime @default(now())
+
+  padre        Usuario  @relation("PadreHijo", fields: [padre_id], references: [id])
+  hijo         Usuario  @relation("HijoPadre", fields: [hijo_id], references: [id])
+
+  @@unique([padre_id, hijo_id])
+  @@map("enlace_parental")
+}
+
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 // model resultado_laboratorio {
