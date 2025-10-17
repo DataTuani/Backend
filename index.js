@@ -71,12 +71,18 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: [
+      "http://localhost:5173",
+      "https://sinaes.up.railway.app",
+      "https://tu-frontend.netlify.app"
+    ],
     methods: ["GET", "POST"],
     credentials: true,
     allowedHeaders: ["Content-Type"],
   },
+  transports: ["websocket"], // 👈 Añade esta línea
 });
+
 
 // Log de errores de conexión CORS (útil para Railway)
 io.engine.on("connection_error", (err) => {
