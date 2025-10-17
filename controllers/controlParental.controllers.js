@@ -1,7 +1,6 @@
-import { PrismaClient } from "@prisma/client";
-import crypto from "crypto";
-import jwt from "jsonwebtoken";
-
+const { PrismaClient } = require("@prisma/client");
+const {crypto} = require("crypto");
+const jwt = require("jsonwebtoken");
 const prisma = new PrismaClient();
 
 // HIJO SOLICITA EL OTP
