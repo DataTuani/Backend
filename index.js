@@ -57,40 +57,31 @@ const io = new Server(server, {
     origin: "*",
   },
 });
+
 io.on("connection", (socket) => {
   console.log("Usuario conectado:", socket.id);
 
   socket.on("join-room", ({ roomId }) => {
     socket.join(roomId);
-
-    const clients = Array.from(io.sockets.adapter.rooms.get(roomId) || []);
-    console.log(`Usuarios en sala ${roomId}:`, clients);
-
-    // Enviar al nuevo usuario la lista de peers existentes
-    socket.emit("all-users", clients.filter((id) => id !== socket.id));
-
-    // Notificar a los demás que hay un nuevo participante
+    console.log(`Usuario ${socket.id} se unió a la sala ${roomId}`);
     socket.to(roomId).emit("user-joined", socket.id);
   });
-
-  socket.on("offer", ({ roomId, offer, to }) => {
-    io.to(to).emit("offer", { from: socket.id, offer });
+  socket.on("offer", ({ roomId, offer }) => {
+    socket.to(roomId).emit("offer", { offer });
   });
 
-  socket.on("answer", ({ roomId, answer, to }) => {
-    io.to(to).emit("answer", { from: socket.id, answer });
+  socket.on("answer", ({ roomId, answer }) => {
+    socket.to(roomId).emit("answer", { answer });
   });
 
-  socket.on("ice-candidate", ({ roomId, candidate, to }) => {
-    io.to(to).emit("ice-candidate", { from: socket.id, candidate });
+  socket.on("ice-candidate", ({ roomId, candidate }) => {
+    socket.to(roomId).emit("ice-candidate", { candidate });
   });
 
   socket.on("disconnect", () => {
     console.log("Usuario desconectado:", socket.id);
-    socket.broadcast.emit("peer-disconnected", socket.id);
   });
 });
-
 
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
