@@ -49,29 +49,40 @@ app.use("/api/ordenesLab", require("./routes/ordenesLab"));
 app.use("/api/hospitales", require("./routes/hospitales"));
 app.use("/api/enfermeria", require("./routes/enfermeria"));
 app.use("/api/controlParental", require("./routes/controlParental"));
-
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
     origin: "*",
-  },
+    methods: ["GET", "POST"]
+  }
 });
-
 io.on("connection", (socket) => {
-  console.log("Usuario conectado:", socket.id);
+  console.log("🟢 Usuario conectado:", socket.id);
 
+  // 🔹 Unirse a una sala
   socket.on("join-room", ({ roomId }) => {
     socket.join(roomId);
-    console.log(`Usuario ${socket.id} se unió a la sala ${roomId}`);
-    socket.to(roomId).emit("user-joined", socket.id);
+    console.log(`👥 Usuario ${socket.id} se unió a la sala ${roomId}`);
+
+    const room = io.sockets.adapter.rooms.get(roomId);
+    const numClients = room ? room.size : 0;
+
+    // Si ya hay otro usuario en la sala, avísale al primero
+    if (numClients > 1) {
+      socket.to(roomId).emit("ready");
+    }
   });
+
+  // 🔹 Offer / Answer / ICE candidates
   socket.on("offer", ({ roomId, offer }) => {
     socket.to(roomId).emit("offer", { offer });
+    console.log("📤 Offer reenviada a sala:", roomId);
   });
 
   socket.on("answer", ({ roomId, answer }) => {
     socket.to(roomId).emit("answer", { answer });
+    console.log("📩 Answer reenviada a sala:", roomId);
   });
 
   socket.on("ice-candidate", ({ roomId, candidate }) => {
@@ -79,10 +90,9 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("Usuario desconectado:", socket.id);
+    console.log("🔴 Usuario desconectado:", socket.id);
   });
 });
-
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Swagger Docs available at http://localhost:${PORT}/api-docs`);
