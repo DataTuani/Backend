@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const prisma = new PrismaClient();
 
 // HIJO SOLICITA EL OTP
-export const generarOTP = async (req, res) => {
+ const generarOTP = async (req, res) => {
   try {
     const { usuario_id } = req.body; // ID del padre
     const codigo = crypto.randomInt(100000, 999999).toString(); // Ej: "847203"
@@ -32,7 +32,7 @@ export const generarOTP = async (req, res) => {
 };
 
 
-export const validarOTP = async (req, res) => {
+ const validarOTP = async (req, res) => {
   try {
     const { codigo, usuario_hijo_id } = req.body;
 
@@ -92,4 +92,9 @@ export const validarOTP = async (req, res) => {
     console.error("Error en validarOTP:", error);
     res.status(500).json({ error: "Error al validar el código OTP." });
   }
+};
+
+module.exports = {
+generarOTP,
+validarOTP
 };
